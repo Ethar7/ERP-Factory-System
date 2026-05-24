@@ -1,3 +1,4 @@
+```mermaid
 graph TD
     %% تعاريف الألوان والتنسيق الاستايلنج
     classDef project fill:#2b5c8f,stroke:#333,stroke-width:2px,color:#fff;
@@ -52,5 +53,6 @@ graph TD
         
         Q -->|Post Debit/Credit via ProjectID| R[JournalEntries & JournalEntryLines]
         R -->|Final Output| S[12. Dynamic Profitability Dashboard]
+'''
     end
     class Q,R,S finance;
