@@ -1,0 +1,217 @@
+# Full ERP Database ERD (Manufacturing System)
+
+```mermaid
+erDiagram
+
+%% =======================
+%% PROJECTS
+%% =======================
+Projects {
+    int ProjectID PK
+    string ProjectName
+    int CustomerID FK
+    datetime StartDate
+    datetime EndDate
+    string ProjectStatus
+    decimal Budget
+}
+
+Customers {
+    int CustomerID PK
+    string CustomerName
+}
+
+ProjectItems {
+    int ProjectItemID PK
+    int ProjectID FK
+    string ItemCode
+    string ItemName
+    string Unit
+    decimal RequiredQuantity
+    decimal UnitPrice
+}
+
+%% =======================
+%% INVENTORY
+%% =======================
+InventoryItems {
+    int ItemID PK
+    string ItemName
+    string ItemType
+    string Unit
+    decimal CurrentStock
+    decimal AverageCost
+}
+
+InventoryTransactions {
+    int TransactionID PK
+    int ItemID FK
+    string TransactionType
+    decimal Quantity
+    decimal UnitCost
+    datetime TransactionDate
+    string ReferenceType
+    int ReferenceID
+}
+
+%% =======================
+%% MOLDS
+%% =======================
+Molds {
+    int MoldID PK
+    string MoldName
+    decimal CostToBuild
+    int LifespanUses
+    int CurrentUses
+}
+
+ProjectMolds {
+    int ProjectMoldID PK
+    int ProjectID FK
+    int MoldID FK
+    int Quantity
+}
+
+%% =======================
+%% MIX DESIGN
+%% =======================
+MixDesigns {
+    int MixDesignID PK
+    string MixName
+    string Strength
+    decimal CostPerUnit
+}
+
+MixIngredients {
+    int IngredientID PK
+    int MixDesignID FK
+    int MaterialID FK
+    decimal StandardQty
+}
+
+%% =======================
+%% PRODUCTION
+%% =======================
+ProductionOrders {
+    int ProductionOrderID PK
+    int ProjectID FK
+    int ProjectItemID FK
+    int MixDesignID FK
+    int MoldID FK
+    decimal TargetQty
+    decimal ProducedQty
+    decimal GoodQty
+    decimal RejectedQty
+    datetime OrderDate
+    string Status
+}
+
+ProductionMaterialConsumption {
+    int ConsumptionID PK
+    int ProductionOrderID FK
+    int MaterialID FK
+    decimal ActualQty
+    decimal StandardQty
+}
+
+%% =======================
+%% DELIVERY
+%% =======================
+DeliveryOrders {
+    int DeliveryOrderID PK
+    int ProjectID FK
+    datetime DeliveryDate
+    string Status
+}
+
+DeliveryItems {
+    int DeliveryItemID PK
+    int DeliveryOrderID FK
+    int ProjectItemID FK
+    decimal ShippedQty
+    decimal ReceivedQty
+    decimal DamagedQty
+}
+
+%% =======================
+%% SITE OPERATIONS
+%% =======================
+SiteOperations {
+    int SiteOperationID PK
+    int ProjectID FK
+    int ProjectItemID FK
+    datetime OperationDate
+    decimal InstalledQty
+    decimal LaborCost
+    decimal Expenses
+}
+
+SiteMaterialConsumption {
+    int SiteConsumptionID PK
+    int SiteOperationID FK
+    int MaterialID FK
+    decimal Quantity
+}
+
+%% =======================
+%% ACCOUNTING
+%% =======================
+ChartOfAccounts {
+    int AccountID PK
+    string AccountCode
+    string AccountName
+    string AccountType
+}
+
+JournalEntries {
+    int JournalEntryID PK
+    string ReferenceType
+    int ReferenceID
+    datetime Date
+    string Description
+}
+
+JournalEntryLines {
+    int JournalLineID PK
+    int JournalEntryID FK
+    int AccountID FK
+    int ProjectID FK
+    decimal Debit
+    decimal Credit
+}
+
+%% =======================
+%% RELATIONSHIPS
+%% =======================
+
+Customers ||--o{ Projects : owns
+
+Projects ||--o{ ProjectItems : contains
+Projects ||--o{ ProjectMolds : uses
+Projects ||--o{ ProductionOrders : has
+Projects ||--o{ DeliveryOrders : delivers
+Projects ||--o{ SiteOperations : executes
+Projects ||--o{ JournalEntryLines : cost_center
+
+ProjectItems ||--o{ ProductionOrders : produced
+
+Molds ||--o{ ProjectMolds : allocated
+Molds ||--o{ ProductionOrders : used
+
+MixDesigns ||--o{ MixIngredients : contains
+MixDesigns ||--o{ ProductionOrders : applied
+
+InventoryItems ||--o{ MixIngredients : used_as_material
+InventoryItems ||--o{ ProductionMaterialConsumption : consumed
+InventoryItems ||--o{ SiteMaterialConsumption : used_on_site
+InventoryItems ||--o{ InventoryTransactions : tracked
+
+ProductionOrders ||--o{ ProductionMaterialConsumption : consumes
+
+DeliveryOrders ||--o{ DeliveryItems : contains
+
+SiteOperations ||--o{ SiteMaterialConsumption : consumes
+
+JournalEntries ||--o{ JournalEntryLines : contains
+ChartOfAccounts ||--o{ JournalEntryLines : accounts
+```
