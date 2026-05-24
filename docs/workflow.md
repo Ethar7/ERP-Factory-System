@@ -1,5 +1,5 @@
 graph TD
-    %% بقاع الألوان والتنسيق
+    %% تعاريف الألوان والتنسيق الاستايلنج
     classDef project fill:#2b5c8f,stroke:#333,stroke-width:2px,color:#fff;
     classDef prep fill:#e67e22,stroke:#333,stroke-width:2px,color:#fff;
     classDef prod fill:#27ae60,stroke:#333,stroke-width:2px,color:#fff;
@@ -25,20 +25,20 @@ graph TD
     %% 3. موديول الإنتاج والمخازن
     subgraph Module 3: Production & Inventory Control
         F --> G[5. Create Production Order]
-        G -->|Batch Closing| H[Quality Control Station]
+        G -->|Batch Closing| H[8. Quality Control Station]
         H -->|Good Quantity| I[Add to InventoryItems - Finished Goods]
         H -->|Rejected Quantity| J[Log Waste & Scrap Analysis]
         
         %% الخصم التلقائي
-        G -.->|Auto Deduct Raw Materials| K[InventoryItems - Raw & Accessories]
+        G -.->|Auto Deduct Raw Materials| K[InventoryItems - Raw Goods]
         G -.->|Calculate Variance| L[ProductionMaterialConsumption - WastageQty]
     end
     class G,H,I,J,K,L prod;
 
     %% 4. موديول التوريد والموقع
     subgraph Module 4: Logistics & Site Operations
-        I --> M[6. Delivery Order & Logistics]
-        M -->|Shipped vs Received| N[7. Site Installation Progress]
+        I --> M[9. Delivery Orders & Logistics]
+        M -->|Shipped vs Received| N[10. Site Installation Progress]
         M -->|Transit Damage| O[Log Shipping Losses]
         N -->|Daily Labor & Expenses| P[SiteOperations & SiteMaterialConsumption]
     end
@@ -46,11 +46,11 @@ graph TD
 
     %% 5. موديول الحسابات والتكاليف
     subgraph Module 5: Financial Accounting & Cost Centers
-        G ==>|Trigger Balanced Ledger Entries| Q((8. Real-Time Accounting Integration))
+        G ==>|Trigger Balanced Ledger Entries| Q((11. Real-Time Accounting Integration))
         M ==>|Trigger Auto Journal Entries| Q
         P ==>|Trigger Daily Site Expenses| Q
         
         Q -->|Post Debit/Credit via ProjectID| R[JournalEntries & JournalEntryLines]
-        R -->|Final Output| S[📊 Dynamic Profitability Dashboard]
+        R -->|Final Output| S[12. Dynamic Profitability Dashboard]
     end
     class Q,R,S finance;
