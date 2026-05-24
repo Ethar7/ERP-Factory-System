@@ -1,68 +1,56 @@
-# ERP Manufacturing Workflow (Ionic Factory)
+graph TD
+    %% بقاع الألوان والتنسيق
+    classDef project fill:#2b5c8f,stroke:#333,stroke-width:2px,color:#fff;
+    classDef prep fill:#e67e22,stroke:#333,stroke-width:2px,color:#fff;
+    classDef prod fill:#27ae60,stroke:#333,stroke-width:2px,color:#fff;
+    classDef delivery fill:#2980b9,stroke:#333,stroke-width:2px,color:#fff;
+    classDef finance fill:#c0392b,stroke:#333,stroke-width:2px,color:#fff;
 
-## 📌 Overview
-This document explains the full end-to-end workflow of the ERP system for a project-based manufacturing factory. It seamlessly connects all modules: Projects, Production, Inventory, Delivery, Site Operations, and Accounting under a unified Cost Center system, mapping perfectly to the database schema.
+    %% 1. موديول المشاريع
+    subgraph Module 1: Projects & BOQ
+        A[1. Project Creation & BOQ] -->|Saves to Projects & ProjectItems| B(2. Review & Approve Budget)
+        B -->|Status = Approved/Active| C{Project Activated?}
+    end
+    class A,B,C project;
 
----
+    %% 2. موديول التحضير
+    subgraph Module 2: Manufacturing Prep
+        C -->|Yes| D[3. Allocate Molds]
+        C -->|Yes| E[4. Select Mix Design & BOM]
+        D -->|Links to ProjectMolds| F[Ready for Production]
+        E -->|Standard Qty in MixIngredients| F
+    end
+    class D,E,F prep;
 
-## 📑 1. Workflow Description
+    %% 3. موديول الإنتاج والمخازن
+    subgraph Module 3: Production & Inventory Control
+        F --> G[5. Create Production Order]
+        G -->|Batch Closing| H[Quality Control Station]
+        H -->|Good Quantity| I[Add to InventoryItems - Finished Goods]
+        H -->|Rejected Quantity| J[Log Waste & Scrap Analysis]
+        
+        %% الخصم التلقائي
+        G -.->|Auto Deduct Raw Materials| K[InventoryItems - Raw & Accessories]
+        G -.->|Calculate Variance| L[ProductionMaterialConsumption - WastageQty]
+    end
+    class G,H,I,J,K,L prod;
 
-### 1. Quotation & Project Creation
-* Customer request/tender is received.
-* Technical quotation is prepared based on engineering specs.
-* Project is created in the system with a unique **Project ID** acting as a **Cost Center**.
-* **BOQ (Project Items)** is defined and itemized in `ProjectItems` with specific `ItemCode`, quantities, and estimated prices to avoid any miscommunication between departments.
+    %% 4. موديول التوريد والموقع
+    subgraph Module 4: Logistics & Site Operations
+        I --> M[6. Delivery Order & Logistics]
+        M -->|Shipped vs Received| N[7. Site Installation Progress]
+        M -->|Transit Damage| O[Log Shipping Losses]
+        N -->|Daily Labor & Expenses| P[SiteOperations & SiteMaterialConsumption]
+    end
+    class M,N,O,P delivery;
 
-### 2. Project Approval & Activation
-* Project is reviewed, contract terms are finalized, and the client signs off.
-* Total project budget is confirmed and locked in the system.
-* Project status shifts from **Draft** to **Approved/Active**, opening the financial period for this project to receive transactions.
-
-### 3. Mold Preparation & Allocation
-* Required molds are assigned from the current available inventory (`Molds`) or marked to be custom-built (`CostToBuild`).
-* Molds are linked to the project via `ProjectMolds` to track their exact utilization, current uses count, and remaining lifespan.
-
-### 4. Mix Design Selection (BOM)
-* Appropriate standard mix design is selected from `MixDesigns` based on target strength requirements (e.g., 350 Kg/cm²).
-* Standard material ratios (Bill of Materials - BOM) are pulled from `MixIngredients` to define theoretical raw material weights needed per unit.
-
-### 5. Production & Quality Control Execution
-* Production orders are created under a unique `BatchNumber` to track quality.
-* Production status tracks stages in real-time: **Setup**, **Pouring/Curing (WIP)**, and **Finished**.
-* Direct labor costs (`LaborCost`) and automated mold depreciation costs (`MoldDepreciationCost`) are recorded per batch.
-* **Quality Control Check:** The total produced quantity is split into **GoodQuantity** (passed QC) and **RejectedQuantity** (scrapped or moved for crushing/recycling).
-
-### 6. Inventory Update & Waste Analysis
-* Upon batch closure, raw materials and accessories are automatically deducted from `InventoryItems` based on **Actual** consumption.
-* Finished goods (`GoodQuantity`) are added to stock, automatically reserved under the specific `ProjectID`.
-* **Variance Tracking:** System automatically calculates `WastageQty` (`ActualQtyConsumed` - `StandardQtyExpected`) to detect material deviation.
-* System triggers low-stock alerts if raw materials drop below the predefined **Reorder Point**.
-
-### 7. Delivery & Logistics
-* Delivery orders are created in `DeliveryOrders` based on approved loading tickets.
-* Finished goods are shipped to the site, tracking driver details and vehicle numbers.
-* **Transit Check:** Quantities received at the site are matched against shipped amounts (`QuantityReceived` vs `QuantityShipped`). Any damages during transit are logged into `QuantityDamagedInTransit` to isolate shipping losses financially.
-
-### 8. Site Operations & Installation
-* Finished items are installed at the client's site, logging daily progress via `InstalledQuantity` in `SiteOperations`.
-* Daily installation labor, equipment rentals, and site expenses are recorded.
-* Site-specific materials (installation accessories like anchors/screws and finishing chemicals) are consumed via `SiteMaterialConsumption`, deducting them directly from the main inventory.
-
-### 9. Real-Time Accounting Integration
-* Every operational movement automatically triggers balanced **Journal Entries** (Debit/Credit) into `JournalEntries` and `JournalEntryLines`.
-* All financial lines are automatically tagged with the **Project ID** to act as a **Cost Center**.
-* The `IsAccountingPosted` flag is set to `1` upon success to secure data and prevent duplicate entries.
-
-### 10. Project Completion & Evaluation
-* Once all BOQ items are installed and verified, the project status shifts to **Completed**.
-* The system aggregates all general ledger lines under the project's cost center to evaluate total actual spending against the estimated budget.
-* Final project variance reports are generated for timelines, material waste, and overall profitability.
-
----
-
-## 📊 2. System Outputs & Dashboards
-* **Total Project Cost:** Full financial transparency across all operational stages.
-* **Material Consumption Variance:** Precision comparison between Theoretical (BOM) vs. Actual raw material consumption.
-* **Waste & Scrap Analysis:** Monitoring the percentage of wastage during manufacturing vs. transit damages.
-* **Mold Efficiency:** Tracking the exact production yield, degradation, and financial depreciation cost per mold asset.
-* **Project Profitability Report:** Instant ROI calculation ($\text{Quotation Price} - \text{Actual Accumulated Cost}$).
+    %% 5. موديول الحسابات والتكاليف
+    subgraph Module 5: Financial Accounting & Cost Centers
+        G ==>|Trigger Balanced Ledger Entries| Q((8. Real-Time Accounting Integration))
+        M ==>|Trigger Auto Journal Entries| Q
+        P ==>|Trigger Daily Site Expenses| Q
+        
+        Q -->|Post Debit/Credit via ProjectID| R[JournalEntries & JournalEntryLines]
+        R -->|Final Output| S[📊 Dynamic Profitability Dashboard]
+    end
+    class Q,R,S finance;
