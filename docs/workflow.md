@@ -1,124 +1,88 @@
 # ERP Manufacturing Workflow
 
 ## Overview
-This document describes the end-to-end workflow of the ERP system for a project-based cement manufacturing factory.  
-It connects all modules: Projects, Production, Inventory, Delivery, Site, and Accounting.
+This document explains the full end-to-end workflow of the ERP system for a project-based manufacturing factory.  
+It connects all modules: Projects, Production, Inventory, Delivery, Site Operations, and Accounting.
 
 ---
 
-# 1. Quotation & Project Creation
+## 1. Workflow Description
+
+### 1. Quotation & Project Creation
 - Customer request is received
-- Quotation is prepared (offline or system-based)
+- Quotation is prepared
 - Project is created in the system
-- Project is assigned to a customer
+- BOQ (Project Items) is defined
 
-**Output:**
-- New Project
-- Project Items (BOQ)
-
----
-
-# 2. Project Approval
+### 2. Project Approval
 - Project is reviewed and approved
-- Budget and timeline are confirmed
-- Project status becomes: Approved
+- Budget is confirmed
+- Status becomes Approved
 
----
+### 3. Mold Preparation
+- Required molds are assigned or prepared
+- Molds are linked to project
 
-# 3. Mold Preparation
-- Required molds are identified per ProjectItem
-- Molds are allocated or manufactured
-- Mold lifecycle tracking starts
-
----
-
-# 4. Mix Design Selection
-- Appropriate mix design is assigned per item/sector
+### 4. Mix Design Selection
+- Appropriate mix is selected
 - Material ratios are defined
-- Cost per mix unit is calculated
+- Cost per mix is calculated
 
----
-
-# 5. Production Planning
+### 5. Production
 - Production orders are created
-- Each order is linked to:
-  - Project
-  - Project Item
-  - Mold
-  - Mix Design
-
----
-
-# 6. Production Execution
-
-## Stages:
-- Material preparation
-- Pouring
-- Demolding
-- Curing
-- Finishing
-
-## During production:
-- Raw materials are consumed
-- Labor cost is recorded
+- Materials are consumed
 - Mold usage is tracked
-- Good vs rejected quantities are recorded
+- Good and rejected quantities are recorded
 
-**Output:**
-- Finished goods
-- Waste tracking
-- Updated inventory
+### 6. Inventory Update
+- Raw materials are deducted
+- Finished goods are added
+- All movements are recorded
 
----
-
-# 7. Inventory Update
-- Raw materials are deducted automatically
-- Finished goods are added to inventory
-- All movements are recorded in InventoryTransactions
-
----
-
-# 8. Delivery Process
+### 7. Delivery
 - Delivery order is created
-- Goods are loaded from warehouse
-- Items are shipped to site
-- Damaged goods (if any) are recorded
+- Goods are shipped to site
+- Damages (if any) are recorded
 
-**Output:**
-- Delivery tracking
-- Site received quantities
+### 8. Site Operations
+- Items are installed at site
+- Daily labor and expenses are recorded
+- Site materials are consumed
 
----
+### 9. Accounting Integration
+- All operations generate journal entries
+- Costs are linked to project
 
-# 9. Site Installation
-- Items are installed at project site
-- Installation quantity is recorded daily
-- Site materials (accessories, chemicals) are consumed
-- Labor and expenses are tracked
-
----
-
-# 10. Accounting Integration
-
-All system activities automatically generate journal entries:
-
-### Examples:
-- Production → Cost of Goods
-- Delivery → Inventory movement
-- Site expenses → Project cost center
+### 10. Project Completion
+- Total cost is calculated
+- Profitability is evaluated
+- Final project report is generated
 
 ---
 
-# 11. Project Completion
-- Remaining quantities are calculated
-- Total cost is finalized
-- Project profitability is calculated
+## 2. Workflow Diagram
+
+```mermaid
+flowchart TD
+
+A[Quotation] --> B[Project Creation]
+B --> C[Project Approval]
+C --> D[Mold Preparation]
+D --> E[Mix Design Selection]
+E --> F[Production]
+F --> G[Inventory Update]
+G --> H[Delivery]
+H --> I[Site Operations]
+I --> J[Accounting Integration]
+J --> K[Project Completion]
+```
 
 ---
 
-# Final Output of System
-- Total project cost
-- Material consumption analysis
-- Wastage percentage
-- Mold usage efficiency
-- Profitability report per project
+## 3. Output of System
+- Total Project Cost
+- Material Consumption
+- Waste Analysis
+- Mold Efficiency
+- Profitability Report
+```
