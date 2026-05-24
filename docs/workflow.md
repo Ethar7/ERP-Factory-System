@@ -53,6 +53,6 @@ graph TD
         
         Q -->|Post Debit/Credit via ProjectID| R[JournalEntries & JournalEntryLines]
         R -->|Final Output| S[12. Dynamic Profitability Dashboard]
-'''
+
     end
     class Q,R,S finance;
