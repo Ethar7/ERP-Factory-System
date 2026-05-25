@@ -1,5 +1,4 @@
-erDiagram
-
+```mermaid
 ChartOfAccounts {
     int AccountID PK
     nvarchar AccountCode UK
