@@ -1,83 +1,62 @@
 ```mermaid
+erDiagram
+
 ChartOfAccounts {
     int AccountID PK
-    nvarchar AccountCode UK
-    nvarchar AccountName
-    nvarchar AccountType
+    string AccountCode
+    string AccountName
+    string AccountType
 }
 
 Customers {
     int CustomerID PK
-    nvarchar CustomerName UK
-    nvarchar ContactPerson
-    nvarchar Phone
-    nvarchar Email
-    nvarchar Address
+    string CustomerName
+    string ContactPerson
+    string Phone
+    string Email
+    string Address
     int AccountID FK
-    datetime CreatedAt
 }
 
 Projects {
     int ProjectID PK
-    nvarchar ProjectName
+    string ProjectName
     int CustomerID FK
-    datetime StartDate
-    datetime EndDate
-    nvarchar ProjectStatus
-    decimal TotalEstimatedBudget
-    datetime CreatedAt
 }
 
 ProjectItems {
     int ProjectItemID PK
     int ProjectID FK
-    nvarchar ItemCode
-    nvarchar ItemName
-    nvarchar Unit
-    decimal RequiredQuantity
-    decimal EstimatedUnitPrice
-    decimal TaxRate
-    decimal TaxAmount
-    decimal TotalPrice
+    string ItemCode
+    string ItemName
 }
 
 InventoryItems {
     int ItemID PK
-    nvarchar ItemName
-    nvarchar ItemType
-    nvarchar Unit
-    decimal CurrentStock
-    decimal AverageCost
+    string ItemName
+    string ItemType
 }
 
 Molds {
     int MoldID PK
-    nvarchar MoldName
-    decimal CostToBuild
-    int ExpectedLifespanUses
-    int CurrentUsesCount
-    nvarchar MoldStatus
+    string MoldName
 }
 
 ProjectMolds {
     int ProjectMoldID PK
     int ProjectID FK
     int MoldID FK
-    int AllocQuantity
 }
 
 MixDesigns {
     int MixDesignID PK
-    nvarchar MixName
-    nvarchar TargetStrength
-    decimal StandardCostPerUnit
+    string MixName
 }
 
 MixIngredients {
     int IngredientID PK
     int MixDesignID FK
     int RawMaterialID FK
-    decimal StandardQtyPerUnit
 }
 
 ProductionOrders {
@@ -86,71 +65,39 @@ ProductionOrders {
     int ProjectItemID FK
     int MixDesignID FK
     int MoldID FK
-    datetime OrderDate
-    nvarchar BatchNumber
-    decimal TargetQuantity
-    decimal ProducedQuantity
-    decimal GoodQuantity
-    decimal RejectedQuantity
-    decimal LaborCost
-    decimal MoldDepreciationCost
-    nvarchar ProductionStatus
-    bit IsAccountingPosted
 }
 
 ProductionMaterialConsumption {
     int ConsumptionID PK
     int ProductionOrderID FK
     int MaterialID FK
-    decimal ActualQtyConsumed
-    decimal StandardQtyExpected
-    decimal WastageQty
 }
 
 DeliveryOrders {
     int DeliveryOrderID PK
     int ProjectID FK
-    datetime DeliveryDate
-    nvarchar DriverName
-    nvarchar VehicleNumber
-    nvarchar LoadingTicketNumber
-    nvarchar DeliveryTicketNumber
-    nvarchar DeliveryStatus
-    bit IsInvoiced
 }
 
 DeliveryItems {
     int DeliveryItemID PK
     int DeliveryOrderID FK
     int ProjectItemID FK
-    decimal QuantityShipped
-    decimal QuantityReceived
-    decimal QuantityDamagedInTransit
 }
 
 SiteOperations {
     int SiteOperationID PK
     int ProjectID FK
     int ProjectItemID FK
-    datetime OperationDate
-    decimal InstalledQuantity
-    decimal SupervisorLaborCost
-    decimal DailyExpenses
 }
 
 SiteMaterialConsumption {
     int SiteConsumptionID PK
     int SiteOperationID FK
     int MaterialID FK
-    decimal QuantityConsumed
 }
 
 JournalEntries {
     int JournalEntryID PK
-    nvarchar ReferenceType
-    int ReferenceID
-    datetime TransactionDate
-    nvarchar Narration
 }
 
 JournalEntryLines {
@@ -158,40 +105,38 @@ JournalEntryLines {
     int JournalEntryID FK
     int AccountID FK
     int ProjectID FK
-    decimal Debit
-    decimal Credit
 }
 
-ChartOfAccounts ||--o{ Customers : financial_account
-ChartOfAccounts ||--o{ JournalEntryLines : booked_to
+ChartOfAccounts ||--o{ Customers : has
+ChartOfAccounts ||--o{ JournalEntryLines : contains
 
-Customers ||--o{ Projects : orders
+Customers ||--o{ Projects : owns
 
 Projects ||--o{ ProjectItems : contains
-Projects ||--o{ ProjectMolds : allocates
-Projects ||--o{ ProductionOrders : tracks_production
-Projects ||--o{ DeliveryOrders : ships_to
-Projects ||--o{ SiteOperations : manages_installations
-Projects ||--o{ JournalEntryLines : cost_center
+Projects ||--o{ ProjectMolds : uses
+Projects ||--o{ ProductionOrders : produces
+Projects ||--o{ DeliveryOrders : delivers
+Projects ||--o{ SiteOperations : installs
 
-ProjectItems ||--o{ ProductionOrders : defines_product
-ProjectItems ||--o{ DeliveryItems : shipped_as
-ProjectItems ||--o{ SiteOperations : installed_as
+ProjectItems ||--o{ ProductionOrders : item
+ProjectItems ||--o{ DeliveryItems : shipped
+ProjectItems ||--o{ SiteOperations : installed
 
-Molds ||--o{ ProjectMolds : assigned_to
-Molds ||--o{ ProductionOrders : shapes_production
+Molds ||--o{ ProjectMolds : assigned
+Molds ||--o{ ProductionOrders : used
 
-MixDesigns ||--o{ MixIngredients : formulates
-MixDesigns ||--o{ ProductionOrders : specifies_mix
+MixDesigns ||--o{ MixIngredients : includes
+MixDesigns ||--o{ ProductionOrders : used
 
-InventoryItems ||--o{ MixIngredients : used_as_ingredient
-InventoryItems ||--o{ ProductionMaterialConsumption : factory_material
-InventoryItems ||--o{ SiteMaterialConsumption : site_material
+InventoryItems ||--o{ MixIngredients : material
+InventoryItems ||--o{ ProductionMaterialConsumption : consumed
+InventoryItems ||--o{ SiteMaterialConsumption : used
 
-ProductionOrders ||--o{ ProductionMaterialConsumption : requires_materials
+ProductionOrders ||--o{ ProductionMaterialConsumption : consumes
 
-DeliveryOrders ||--o{ DeliveryItems : includes
+DeliveryOrders ||--o{ DeliveryItems : contains
 
-SiteOperations ||--o{ SiteMaterialConsumption : requires_site_materials
+SiteOperations ||--o{ SiteMaterialConsumption : consumes
 
-JournalEntries ||--o{ JournalEntryLines : has_lines
+JournalEntries ||--o{ JournalEntryLines : records
+```
