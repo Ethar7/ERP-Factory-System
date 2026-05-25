@@ -1,217 +1,226 @@
-# Full ERP Database ERD (Manufacturing System)
-
-```mermaid
 erDiagram
 
-%% =======================
-%% PROJECTS
-%% =======================
-Projects {
-    int ProjectID PK
-    string ProjectName
-    int CustomerID FK
-    datetime StartDate
-    datetime EndDate
-    string ProjectStatus
-    decimal Budget
+%% ==========================================
+%% 1. FINANCIAL & CHART OF ACCOUNTS
+%% ==========================================
+ChartOfAccounts {
+    int AccountID PK
+    nvarchar AccountCode UK
+    nvarchar AccountName
+    nvarchar AccountType
 }
 
 Customers {
     int CustomerID PK
-    string CustomerName
+    nvarchar CustomerName UK
+    nvarchar ContactPerson "NULL"
+    nvarchar Phone "NULL"
+    nvarchar Email "NULL"
+    nvarchar Address "NULL"
+    int AccountID FK "ON DELETE SET NULL"
+    datetime CreatedAt "DEFAULT GETDATE()"
+}
+
+%% ==========================================
+%% 2. PROJECT MANAGEMENT & BOQ
+%% ==========================================
+Projects {
+    int ProjectID PK
+    nvarchar ProjectName
+    int CustomerID FK "ON DELETE NO ACTION"
+    datetime StartDate "DEFAULT GETDATE()"
+    datetime EndDate "NULL"
+    nvarchar ProjectStatus "DEFAULT 'Draft'"
+    decimal TotalEstimatedBudget "DEFAULT 0.00"
+    datetime CreatedAt "DEFAULT GETDATE()"
 }
 
 ProjectItems {
     int ProjectItemID PK
-    int ProjectID FK
-    string ItemCode
-    string ItemName
-    string Unit
+    int ProjectID FK "ON DELETE CASCADE"
+    nvarchar ItemCode
+    nvarchar ItemName
+    nvarchar Unit
     decimal RequiredQuantity
-    decimal UnitPrice
+    decimal EstimatedUnitPrice
+    decimal TaxRate "DEFAULT 0.00"
+    decimal TaxAmount AS "RequiredQty*EstimatedPrice*(TaxRate/100)"
+    decimal TotalPrice AS "RequiredQty*EstimatedPrice"
 }
 
-%% =======================
-%% INVENTORY
-%% =======================
+%% ==========================================
+%% 3. INVENTORY & RAW MATERIALS
+%% ==========================================
 InventoryItems {
     int ItemID PK
-    string ItemName
-    string ItemType
-    string Unit
-    decimal CurrentStock
-    decimal AverageCost
+    nvarchar ItemName
+    nvarchar ItemType
+    nvarchar Unit
+    decimal CurrentStock "DEFAULT 0.0000"
+    decimal AverageCost "DEFAULT 0.00"
 }
 
-InventoryTransactions {
-    int TransactionID PK
-    int ItemID FK
-    string TransactionType
-    decimal Quantity
-    decimal UnitCost
-    datetime TransactionDate
-    string ReferenceType
-    int ReferenceID
-}
-
-%% =======================
-%% MOLDS
-%% =======================
+%% ==========================================
+%% 4. MOLDS & MIX DESIGNS
+%% ==========================================
 Molds {
     int MoldID PK
-    string MoldName
+    nvarchar MoldName
     decimal CostToBuild
-    int LifespanUses
-    int CurrentUses
+    int ExpectedLifespanUses
+    int CurrentUsesCount "DEFAULT 0"
+    nvarchar MoldStatus "DEFAULT 'Available'"
 }
 
 ProjectMolds {
     int ProjectMoldID PK
-    int ProjectID FK
-    int MoldID FK
-    int Quantity
+    int ProjectID FK "ON DELETE CASCADE"
+    int MoldID FK "ON DELETE CASCADE"
+    int AllocQuantity
 }
 
-%% =======================
-%% MIX DESIGN
-%% =======================
 MixDesigns {
     int MixDesignID PK
-    string MixName
-    string Strength
-    decimal CostPerUnit
+    nvarchar MixName
+    nvarchar TargetStrength
+    decimal StandardCostPerUnit "DEFAULT 0.00"
 }
 
 MixIngredients {
     int IngredientID PK
-    int MixDesignID FK
-    int MaterialID FK
-    decimal StandardQty
+    int MixDesignID FK "ON DELETE CASCADE"
+    int RawMaterialID FK "ON DELETE NO ACTION"
+    decimal StandardQtyPerUnit
 }
 
-%% =======================
-%% PRODUCTION
-%% =======================
+%% ==========================================
+%% 5. SHOP FLOOR PRODUCTION
+%% ==========================================
 ProductionOrders {
     int ProductionOrderID PK
-    int ProjectID FK
-    int ProjectItemID FK
-    int MixDesignID FK
-    int MoldID FK
-    decimal TargetQty
-    decimal ProducedQty
-    decimal GoodQty
-    decimal RejectedQty
-    datetime OrderDate
-    string Status
+    int ProjectID FK "ON DELETE NO ACTION"
+    int ProjectItemID FK "ON DELETE NO ACTION"
+    int MixDesignID FK "ON DELETE NO ACTION"
+    int MoldID FK "ON DELETE NO ACTION"
+    datetime OrderDate "DEFAULT GETDATE()"
+    nvarchar BatchNumber
+    decimal TargetQuantity
+    decimal ProducedQuantity
+    decimal GoodQuantity "DEFAULT 0.00"
+    decimal RejectedQuantity "DEFAULT 0.00"
+    decimal LaborCost "DEFAULT 0.00"
+    decimal MoldDepreciationCost "DEFAULT 0.00"
+    nvarchar ProductionStatus "DEFAULT 'Setup'"
+    bit IsAccountingPosted "DEFAULT 0"
 }
 
 ProductionMaterialConsumption {
     int ConsumptionID PK
-    int ProductionOrderID FK
-    int MaterialID FK
-    decimal ActualQty
-    decimal StandardQty
+    int ProductionOrderID FK "ON DELETE CASCADE"
+    int MaterialID FK "ON DELETE NO ACTION"
+    decimal ActualQtyConsumed
+    decimal StandardQtyExpected
+    decimal WastageQty AS "ActualQtyConsumed-StandardQtyExpected"
 }
 
-%% =======================
-%% DELIVERY
-%% =======================
+%% ==========================================
+%% 6. LOGISTICS & DELIVERY
+%% ==========================================
 DeliveryOrders {
     int DeliveryOrderID PK
-    int ProjectID FK
-    datetime DeliveryDate
-    string Status
+    int ProjectID FK "ON DELETE NO ACTION"
+    datetime DeliveryDate "DEFAULT GETDATE()"
+    nvarchar DriverName
+    nvarchar VehicleNumber "NULL"
+    nvarchar LoadingTicketNumber
+    nvarchar DeliveryTicketNumber
+    nvarchar DeliveryStatus "DEFAULT 'InTransit'"
+    bit IsInvoiced "DEFAULT 0"
 }
 
 DeliveryItems {
     int DeliveryItemID PK
-    int DeliveryOrderID FK
-    int ProjectItemID FK
-    decimal ShippedQty
-    decimal ReceivedQty
-    decimal DamagedQty
+    int DeliveryOrderID FK "ON DELETE CASCADE"
+    int ProjectItemID FK "ON DELETE NO ACTION"
+    decimal QuantityShipped
+    decimal QuantityReceived "NULL"
+    decimal QuantityDamagedInTransit "DEFAULT 0.00"
 }
 
-%% =======================
-%% SITE OPERATIONS
-%% =======================
+%% ==========================================
+%% 7. SITE OPERATIONS
+%% ==========================================
 SiteOperations {
     int SiteOperationID PK
-    int ProjectID FK
-    int ProjectItemID FK
-    datetime OperationDate
-    decimal InstalledQty
-    decimal LaborCost
-    decimal Expenses
+    int ProjectID FK "ON DELETE NO ACTION"
+    int ProjectItemID FK "ON DELETE NO ACTION"
+    datetime OperationDate "DEFAULT GETDATE()"
+    decimal InstalledQuantity
+    decimal SupervisorLaborCost "DEFAULT 0.00"
+    decimal DailyExpenses "DEFAULT 0.00"
 }
 
 SiteMaterialConsumption {
     int SiteConsumptionID PK
-    int SiteOperationID FK
-    int MaterialID FK
-    decimal Quantity
+    int SiteOperationID FK "ON DELETE CASCADE"
+    int MaterialID FK "ON DELETE NO ACTION"
+    decimal QuantityConsumed
 }
 
-%% =======================
-%% ACCOUNTING
-%% =======================
-ChartOfAccounts {
-    int AccountID PK
-    string AccountCode
-    string AccountName
-    string AccountType
-}
-
+%% ==========================================
+%% 8. GENERAL LEDGER (ACCOUNTING)
+%% ==========================================
 JournalEntries {
     int JournalEntryID PK
-    string ReferenceType
+    nvarchar ReferenceType
     int ReferenceID
-    datetime Date
-    string Description
+    datetime TransactionDate "DEFAULT GETDATE()"
+    nvarchar Narration
 }
 
 JournalEntryLines {
     int JournalLineID PK
-    int JournalEntryID FK
-    int AccountID FK
-    int ProjectID FK
-    decimal Debit
-    decimal Credit
+    int JournalEntryID FK "ON DELETE CASCADE"
+    int AccountID FK "ON DELETE NO ACTION"
+    int ProjectID FK "ON DELETE SET NULL"
+    decimal Debit "DEFAULT 0.00"
+    decimal Credit "DEFAULT 0.00"
 }
 
-%% =======================
-%% RELATIONSHIPS
-%% =======================
+%% ==========================================
+%% RELATIONSHIPS (علاقات الجداول)
+%% ==========================================
 
-Customers ||--o{ Projects : owns
+ChartOfAccounts ||--o{ Customers : "financial_account"
+ChartOfAccounts ||--o{ JournalEntryLines : "booked_to"
 
-Projects ||--o{ ProjectItems : contains
-Projects ||--o{ ProjectMolds : uses
-Projects ||--o{ ProductionOrders : has
-Projects ||--o{ DeliveryOrders : delivers
-Projects ||--o{ SiteOperations : executes
-Projects ||--o{ JournalEntryLines : cost_center
+Customers ||--o{ Projects : "orders"
 
-ProjectItems ||--o{ ProductionOrders : produced
+Projects ||--o{ ProjectItems : "contains"
+Projects ||--o{ ProjectMolds : "allocates"
+Projects ||--o{ ProductionOrders : "tracks_production"
+Projects ||--o{ DeliveryOrders : "ships_to"
+Projects ||--o{ SiteOperations : "manages_installations"
+Projects ||--o{ JournalEntryLines : "acts_as_cost_center"
 
-Molds ||--o{ ProjectMolds : allocated
-Molds ||--o{ ProductionOrders : used
+ProjectItems ||--o{ ProductionOrders : "defines_product"
+ProjectItems ||--o{ DeliveryItems : "shipped_as"
+ProjectItems ||--o{ SiteOperations : "installed_as"
 
-MixDesigns ||--o{ MixIngredients : contains
-MixDesigns ||--o{ ProductionOrders : applied
+Molds ||--o{ ProjectMolds : "assigned_to"
+Molds ||--o{ ProductionOrders : "shapes_production"
 
-InventoryItems ||--o{ MixIngredients : used_as_material
-InventoryItems ||--o{ ProductionMaterialConsumption : consumed
-InventoryItems ||--o{ SiteMaterialConsumption : used_on_site
-InventoryItems ||--o{ InventoryTransactions : tracked
+MixDesigns ||--o{ MixIngredients : "formulates"
+MixDesigns ||--o{ ProductionOrders : "specifies_mix"
 
-ProductionOrders ||--o{ ProductionMaterialConsumption : consumes
+InventoryItems ||--o{ MixIngredients : "used_as_ingredient"
+InventoryItems ||--o{ ProductionMaterialConsumption : "withdrawn_for_factory"
+InventoryItems ||--o{ SiteMaterialConsumption : "withdrawn_for_site"
 
-DeliveryOrders ||--o{ DeliveryItems : contains
+ProductionOrders ||--o{ ProductionMaterialConsumption : "requires_materials"
 
-SiteOperations ||--o{ SiteMaterialConsumption : consumes
+DeliveryOrders ||--o{ DeliveryItems : "includes"
 
-JournalEntries ||--o{ JournalEntryLines : contains
-ChartOfAccounts ||--o{ JournalEntryLines : accounts
-```
+SiteOperations ||--o{ SiteMaterialConsumption : "requires_site_materials"
+
+JournalEntries ||--o{ JournalEntryLines : "has_lines"
