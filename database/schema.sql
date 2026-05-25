@@ -1,7 +1,25 @@
+CREATE TABLE ChartOfAccounts (
+    AccountID INT IDENTITY(1,1) PRIMARY KEY,
+    AccountCode NVARCHAR(50) NOT NULL UNIQUE,
+    AccountName NVARCHAR(150) NOT NULL,
+    AccountType NVARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Customers (
+    CustomerID INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerName NVARCHAR(150) NOT NULL UNIQUE,
+    ContactPerson NVARCHAR(100) NULL,
+    Phone NVARCHAR(50) NULL,
+    Email NVARCHAR(100) NULL,
+    Address NVARCHAR(250) NULL,
+    AccountID INT NULL FOREIGN KEY REFERENCES ChartOfAccounts(AccountID) ON DELETE SET NULL,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
 CREATE TABLE Projects (
     ProjectID INT IDENTITY(1,1) PRIMARY KEY,
     ProjectName NVARCHAR(150) NOT NULL,
-    CustomerName NVARCHAR(150) NOT NULL,
+    CustomerID INT NOT NULL FOREIGN KEY REFERENCES Customers(CustomerID),
     StartDate DATETIME DEFAULT GETDATE(),
     EndDate DATETIME NULL,
     ProjectStatus NVARCHAR(50) DEFAULT 'Draft',
@@ -20,20 +38,14 @@ CREATE TABLE ProjectItems (
     TotalPrice AS (RequiredQuantity * EstimatedUnitPrice)
 );
 
-CREATE TABLE ChartOfAccounts (
-    AccountID INT IDENTITY(1,1) PRIMARY KEY,
-    AccountCode NVARCHAR(50) NOT NULL UNIQUE,
-    AccountName NVARCHAR(150) NOT NULL,
-    AccountType NVARCHAR(50) NOT NULL
-);
-
 CREATE TABLE InventoryItems (
     ItemID INT IDENTITY(1,1) PRIMARY KEY,
     ItemName NVARCHAR(150) NOT NULL,
     ItemType NVARCHAR(50) NOT NULL,
     Unit NVARCHAR(50) NOT NULL,
     CurrentStock DECIMAL(18,4) DEFAULT 0.0000,
-    AverageCost DECIMAL(18,2) DEFAULT 0.00
+    AverageCost DECIMAL(18,2) DEFAULT 0.00,
+    ProjectID INT NULL FOREIGN KEY REFERENCES Projects(ProjectID) ON DELETE SET NULL
 );
 
 CREATE TABLE Molds (
@@ -47,9 +59,9 @@ CREATE TABLE Molds (
 
 CREATE TABLE ProjectMolds (
     ProjectMoldID INT IDENTITY(1,1) PRIMARY KEY,
-    ProjectID INT NOT NULL FOREIGN KEY REFERENCES Projects(ProjectID),
-    MoldID INT NOT NULL FOREIGN KEY REFERENCES Molds(MoldID),
-    AllocatedQuantity INT NOT NULL
+    ProjectID INT NOT NULL FOREIGN KEY REFERENCES Projects(ProjectID) ON DELETE CASCADE,
+    MoldID INT NOT NULL FOREIGN KEY REFERENCES Molds(MoldID) ON DELETE CASCADE,
+    AllocQuantity INT NOT NULL 
 );
 
 CREATE TABLE MixDesigns (
@@ -63,13 +75,13 @@ CREATE TABLE MixIngredients (
     IngredientID INT IDENTITY(1,1) PRIMARY KEY,
     MixDesignID INT NOT NULL FOREIGN KEY REFERENCES MixDesigns(MixDesignID) ON DELETE CASCADE,
     RawMaterialID INT NOT NULL FOREIGN KEY REFERENCES InventoryItems(ItemID),
-    StandardQtyPerUnit DECIMAL(18,4) NOT NULL
+    StandardQtyPerUnit DECIMAL(18,4) NOT NULL 
 );
 
 CREATE TABLE ProductionOrders (
     ProductionOrderID INT IDENTITY(1,1) PRIMARY KEY,
-    ProjectID INT NOT NULL FOREIGN KEY REFERENCES Projects(ProjectID),
-    ProjectItemID INT NOT NULL FOREIGN KEY REFERENCES ProjectItems(ProjectItemID),
+    ProjectID INT NOT NULL FOREIGN KEY REFERENCES Projects(ProjectID) ON DELETE CASCADE,
+    ProjectItemID INT NOT NULL FOREIGN KEY REFERENCES ProjectItems(ProjectItemID), 
     MixDesignID INT NOT NULL FOREIGN KEY REFERENCES MixDesigns(MixDesignID),
     MoldID INT NOT NULL FOREIGN KEY REFERENCES Molds(MoldID),
     OrderDate DATETIME DEFAULT GETDATE(),
@@ -79,55 +91,55 @@ CREATE TABLE ProductionOrders (
     GoodQuantity DECIMAL(18,2) DEFAULT 0.00,
     RejectedQuantity DECIMAL(18,2) DEFAULT 0.00,
     LaborCost DECIMAL(18,2) DEFAULT 0.00,
-    MoldDepreciationCost DECIMAL(18,2) DEFAULT 0.00,
+    MoldDepreciationCost DECIMAL(18,2) DEFAULT 0.00, 
     ProductionStatus NVARCHAR(50) DEFAULT 'Setup',
-    IsAccountingPosted BIT DEFAULT 0
+    IsAccountingPosted BIT DEFAULT 0 
 );
 
 CREATE TABLE ProductionMaterialConsumption (
     ConsumptionID INT IDENTITY(1,1) PRIMARY KEY,
     ProductionOrderID INT NOT NULL FOREIGN KEY REFERENCES ProductionOrders(ProductionOrderID) ON DELETE CASCADE,
     MaterialID INT NOT NULL FOREIGN KEY REFERENCES InventoryItems(ItemID),
-    ActualQtyConsumed DECIMAL(18,4) NOT NULL,
-    StandardQtyExpected DECIMAL(18,4) NOT NULL,
-    WastageQty AS (ActualQtyConsumed - StandardQtyExpected)
+    ActualQtyConsumed DECIMAL(18,4) NOT NULL,     
+    StandardQtyExpected DECIMAL(18,4) NOT NULL,   
+    WastageQty AS (ActualQtyConsumed - StandardQtyExpected) 
 );
 
 CREATE TABLE DeliveryOrders (
     DeliveryOrderID INT IDENTITY(1,1) PRIMARY KEY,
-    ProjectID INT NOT NULL FOREIGN KEY REFERENCES Projects(ProjectID),
+    ProjectID INT NOT NULL FOREIGN KEY REFERENCES Projects(ProjectID) ON DELETE CASCADE,
     DeliveryDate DATETIME DEFAULT GETDATE(),
     DriverName NVARCHAR(100),
-    VehicleNumber NVARCHAR(50),
+    VehicleNumber NVARCHAR(50) NULL,
     LoadingTicketNumber NVARCHAR(50),
     DeliveryTicketNumber NVARCHAR(50),
-    DeliveryStatus NVARCHAR(50) DEFAULT 'InTransit'
+    DeliveryStatus NVARCHAR(50) DEFAULT 'InTransit' 
 );
 
 CREATE TABLE DeliveryItems (
     DeliveryItemID INT IDENTITY(1,1) PRIMARY KEY,
     DeliveryOrderID INT NOT NULL FOREIGN KEY REFERENCES DeliveryOrders(DeliveryOrderID) ON DELETE CASCADE,
-    ProjectItemID INT NOT NULL FOREIGN KEY REFERENCES ProjectItems(ProjectItemID),
-    QuantityShipped DECIMAL(18,2) NOT NULL,
-    QuantityReceived DECIMAL(18,2) NULL,
-    QuantityDamagedInTransit DECIMAL(18,2) DEFAULT 0.00
+    ProjectItemID INT NOT NULL FOREIGN KEY REFERENCES ProjectItems(ProjectItemID), 
+    QuantityShipped DECIMAL(18,2) NOT NULL,       
+    QuantityReceived DECIMAL(18,2) NULL,          
+    QuantityDamagedInTransit DECIMAL(18,2) DEFAULT 0.00 
 );
 
 CREATE TABLE SiteOperations (
     SiteOperationID INT IDENTITY(1,1) PRIMARY KEY,
-    ProjectID INT NOT NULL FOREIGN KEY REFERENCES Projects(ProjectID),
-    ProjectItemID INT NOT NULL FOREIGN KEY REFERENCES ProjectItems(ProjectItemID),
+    ProjectID INT NOT NULL FOREIGN KEY REFERENCES Projects(ProjectID) ON DELETE CASCADE,
+    ProjectItemID INT NOT NULL FOREIGN KEY REFERENCES ProjectItems(ProjectItemID), 
     OperationDate DATETIME DEFAULT GETDATE(),
     InstalledQuantity DECIMAL(18,2) NOT NULL,
-    SupervisorLaborCost DECIMAL(18,2) DEFAULT 0.00,
-    DailyExpenses DECIMAL(18,2) DEFAULT 0.00
+    SupervisorLaborCost DECIMAL(18,2) DEFAULT 0.00, 
+    DailyExpenses DECIMAL(18,2) DEFAULT 0.00       
 );
 
 CREATE TABLE SiteMaterialConsumption (
     SiteConsumptionID INT IDENTITY(1,1) PRIMARY KEY,
     SiteOperationID INT NOT NULL FOREIGN KEY REFERENCES SiteOperations(SiteOperationID) ON DELETE CASCADE,
-    MaterialID INT NOT NULL FOREIGN KEY REFERENCES InventoryItems(ItemID),
-    QuantityConsumed DECIMAL(18,4) NOT NULL
+    MaterialID INT NOT NULL FOREIGN KEY REFERENCES InventoryItems(ItemID), 
+    QuantityConsumed DECIMAL(18,4) NOT NULL        
 );
 
 CREATE TABLE JournalEntries (
@@ -135,14 +147,14 @@ CREATE TABLE JournalEntries (
     ReferenceType NVARCHAR(50) NOT NULL,
     ReferenceID INT NOT NULL,
     TransactionDate DATETIME DEFAULT GETDATE(),
-    Narration NVARCHAR(500) NOT NULL
+    Narration NVARCHAR(500) NOT NULL              
 );
 
 CREATE TABLE JournalEntryLines (
     JournalLineID INT IDENTITY(1,1) PRIMARY KEY,
     JournalEntryID INT NOT NULL FOREIGN KEY REFERENCES JournalEntries(JournalEntryID) ON DELETE CASCADE,
     AccountID INT NOT NULL FOREIGN KEY REFERENCES ChartOfAccounts(AccountID),
-    ProjectID INT NULL,
+    ProjectID INT NULL FOREIGN KEY REFERENCES Projects(ProjectID) ON DELETE SET NULL,
     Debit DECIMAL(18,2) DEFAULT 0.00,
     Credit DECIMAL(18,2) DEFAULT 0.00
 );
