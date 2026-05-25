@@ -138,13 +138,6 @@ CREATE TABLE JournalEntries (
     Narration NVARCHAR(500) NOT NULL
 );
 
-CREATE TABLE ChartOfAccounts (
-    AccountID INT IDENTITY(1,1) PRIMARY KEY,
-    AccountCode NVARCHAR(50) NOT NULL UNIQUE,
-    AccountName NVARCHAR(150) NOT NULL,
-    AccountType NVARCHAR(50) NOT NULL
-);
-
 CREATE TABLE JournalEntryLines (
     JournalLineID INT IDENTITY(1,1) PRIMARY KEY,
     JournalEntryID INT NOT NULL FOREIGN KEY REFERENCES JournalEntries(JournalEntryID) ON DELETE CASCADE,
