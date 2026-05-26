@@ -1,58 +1,74 @@
+# ERP Factory System Workflow
+
 ```mermaid
-graph TD
-    %% تعاريف الألوان والتنسيق الاستايلنج
-    classDef project fill:#2b5c8f,stroke:#333,stroke-width:2px,color:#fff;
-    classDef prep fill:#e67e22,stroke:#333,stroke-width:2px,color:#fff;
-    classDef prod fill:#27ae60,stroke:#333,stroke-width:2px,color:#fff;
-    classDef delivery fill:#2980b9,stroke:#333,stroke-width:2px,color:#fff;
-    classDef finance fill:#c0392b,stroke:#333,stroke-width:2px,color:#fff;
+flowchart TD
+    classDef sales fill:#2b5c8f,stroke:#1b3a5d,stroke-width:2px,color:#fff;
+    classDef prep fill:#e67e22,stroke:#8f4d12,stroke-width:2px,color:#fff;
+    classDef production fill:#27ae60,stroke:#176b3a,stroke-width:2px,color:#fff;
+    classDef logistics fill:#2980b9,stroke:#174f77,stroke-width:2px,color:#fff;
+    classDef finance fill:#c0392b,stroke:#7b241c,stroke-width:2px,color:#fff;
 
-    %% 1. موديول المشاريع
-    subgraph Module 1: Projects & BOQ
-        A[1. Project Creation & BOQ] -->|Saves to Projects & ProjectItems| B(2. Review & Approve Budget)
-        B -->|Status = Approved/Active| C{Project Activated?}
+    subgraph S1["1. Pricing and Project Approval"]
+        A["Create project quotation / BOQ"] --> B["Review quantities, sectors, molds, mixes, and estimated costs"]
+        B --> C{"Project approved?"}
+        C -->|No| D["Keep project as Draft"]
+        C -->|Yes| E["Activate project and cost center"]
     end
-    class A,B,C project;
 
-    %% 2. موديول التحضير
-    subgraph Module 2: Manufacturing Prep
-        C -->|Yes| D[3. Allocate Molds]
-        C -->|Yes| E[4. Select Mix Design & BOM]
-        D -->|Links to ProjectMolds| F[Ready for Production]
-        E -->|Standard Qty in MixIngredients| F
+    subgraph S2["2. Manufacturing Preparation"]
+        E --> F["Define project items and sectors"]
+        F --> G["Allocate required molds"]
+        F --> H["Select mix design per item / sector"]
+        G --> I["Calculate mold cost per unit"]
+        H --> J["Calculate theoretical raw material requirements"]
+        I --> K["Ready for production"]
+        J --> K
     end
-    class D,E,F prep;
 
-    %% 3. موديول الإنتاج والمخازن
-    subgraph Module 3: Production & Inventory Control
-        F --> G[5. Create Production Order]
-        G -->|Batch Closing| H[8. Quality Control Station]
-        H -->|Good Quantity| I[Add to InventoryItems - Finished Goods]
-        H -->|Rejected Quantity| J[Log Waste & Scrap Analysis]
-        
-        %% الخصم التلقائي
-        G -.->|Auto Deduct Raw Materials| K[InventoryItems - Raw Goods]
-        G -.->|Calculate Variance| L[ProductionMaterialConsumption - WastageQty]
+    subgraph S3["3. Production and Inventory"]
+        K --> L["Create production order / batch"]
+        L --> M["Issue raw materials from inventory"]
+        M --> N["Record actual material consumption"]
+        N --> O["Track mold usage and labor cost"]
+        O --> P["Quality control"]
+        P --> Q["Finished good quantity"]
+        P --> R["Rejected / waste quantity"]
+        Q --> S["Receive finished goods into inventory"]
+        R --> T["Record waste and variance"]
     end
-    class G,H,I,J,K,L prod;
 
-    %% 4. موديول التوريد والموقع
-    subgraph Module 4: Logistics & Site Operations
-        I --> M[9. Delivery Orders & Logistics]
-        M -->|Shipped vs Received| N[10. Site Installation Progress]
-        M -->|Transit Damage| O[Log Shipping Losses]
-        N -->|Daily Labor & Expenses| P[SiteOperations & SiteMaterialConsumption]
+    subgraph S4["4. Delivery to Project Site"]
+        S --> U["Create loading / delivery order"]
+        U --> V["Ship finished items to site"]
+        V --> W["Record received and damaged quantities"]
+        W --> X["Calculate remaining to deliver"]
+        W --> Y["Calculate remaining to manufacture"]
     end
-    class M,N,O,P delivery;
 
-    %% 5. موديول الحسابات والتكاليف
-    subgraph Module 5: Financial Accounting & Cost Centers
-        G ==>|Trigger Balanced Ledger Entries| Q((11. Real-Time Accounting Integration))
-        M ==>|Trigger Auto Journal Entries| Q
-        P ==>|Trigger Daily Site Expenses| Q
-        
-        Q -->|Post Debit/Credit via ProjectID| R[JournalEntries & JournalEntryLines]
-        R -->|Final Output| S[12. Dynamic Profitability Dashboard]
-
+    subgraph S5["5. Site Installation and Finishing"]
+        W --> Z["Record installed quantity"]
+        Z --> AA["Issue site accessories and finishing materials"]
+        AA --> AB["Record site labor and daily expenses"]
+        AB --> AC["Calculate remaining to install"]
     end
-    class Q,R,S finance;
+
+    subgraph S6["6. Accounting, Costing, and Reports"]
+        M --> AD["Update inventory transactions"]
+        S --> AD
+        U --> AD
+        AA --> AD
+        N --> AE["Update project actual cost"]
+        O --> AE
+        AB --> AE
+        AE --> AF["Post journal entries"]
+        AF --> AG["Project profitability report"]
+        AG --> AH["Final project cost, waste, delivery, installation, and profit"]
+    end
+
+    class A,B,C,D,E sales;
+    class F,G,H,I,J,K prep;
+    class L,M,N,O,P,Q,R,S,T production;
+    class U,V,W,X,Y logistics;
+    class Z,AA,AB,AC logistics;
+    class AD,AE,AF,AG,AH finance;
+```

@@ -1,3 +1,5 @@
+# ERP Factory System ERD
+
 ```mermaid
 erDiagram
 
@@ -16,17 +18,18 @@ Customers {
     string Email
     string Address
     int AccountID FK
-    date CreatedAt
+    datetime CreatedAt
 }
 
 Projects {
     int ProjectID PK
     string ProjectName
     int CustomerID FK
-    date StartDate
-    date EndDate
+    datetime StartDate
+    datetime EndDate
     string ProjectStatus
-    float TotalEstimatedBudget
+    decimal TotalEstimatedBudget
+    datetime CreatedAt
 }
 
 ProjectItems {
@@ -35,11 +38,12 @@ ProjectItems {
     string ItemCode
     string ItemName
     string Unit
-    float RequiredQuantity
-    float EstimatedUnitPrice
-    float TaxRate
-    float TaxAmount
-    float TotalPrice
+    decimal RequiredQuantity
+    decimal EstimatedUnitPrice
+    decimal TaxRate
+    decimal TaxAmount
+    decimal TotalPrice
+    decimal TotalPriceWithTax
 }
 
 InventoryItems {
@@ -47,14 +51,27 @@ InventoryItems {
     string ItemName
     string ItemType
     string Unit
-    float CurrentStock
-    float AverageCost
+    decimal CurrentStock
+    decimal AverageCost
+}
+
+InventoryTransactions {
+    int TransactionID PK
+    int ItemID FK
+    int ProjectID FK
+    string TransactionType
+    decimal Quantity
+    decimal UnitCost
+    datetime TransactionDate
+    string ReferenceType
+    int ReferenceID
+    string Notes
 }
 
 Molds {
     int MoldID PK
     string MoldName
-    float CostToBuild
+    decimal CostToBuild
     int ExpectedLifespanUses
     int CurrentUsesCount
     string MoldStatus
@@ -65,20 +82,21 @@ ProjectMolds {
     int ProjectID FK
     int MoldID FK
     int AllocQuantity
+    datetime AllocatedAt
 }
 
 MixDesigns {
     int MixDesignID PK
     string MixName
     string TargetStrength
-    float StandardCostPerUnit
+    decimal StandardCostPerUnit
 }
 
 MixIngredients {
     int IngredientID PK
     int MixDesignID FK
     int RawMaterialID FK
-    float StandardQtyPerUnit
+    decimal StandardQtyPerUnit
 }
 
 ProductionOrders {
@@ -87,14 +105,14 @@ ProductionOrders {
     int ProjectItemID FK
     int MixDesignID FK
     int MoldID FK
-    date OrderDate
+    datetime OrderDate
     string BatchNumber
-    float TargetQuantity
-    float ProducedQuantity
-    float GoodQuantity
-    float RejectedQuantity
-    float LaborCost
-    float MoldDepreciationCost
+    decimal TargetQuantity
+    decimal ProducedQuantity
+    decimal GoodQuantity
+    decimal RejectedQuantity
+    decimal LaborCost
+    decimal MoldDepreciationCost
     string ProductionStatus
     bool IsAccountingPosted
 }
@@ -103,15 +121,15 @@ ProductionMaterialConsumption {
     int ConsumptionID PK
     int ProductionOrderID FK
     int MaterialID FK
-    float ActualQtyConsumed
-    float StandardQtyExpected
-    float WastageQty
+    decimal ActualQtyConsumed
+    decimal StandardQtyExpected
+    decimal WastageQty
 }
 
 DeliveryOrders {
     int DeliveryOrderID PK
     int ProjectID FK
-    date DeliveryDate
+    datetime DeliveryDate
     string DriverName
     string VehicleNumber
     string LoadingTicketNumber
@@ -124,33 +142,33 @@ DeliveryItems {
     int DeliveryItemID PK
     int DeliveryOrderID FK
     int ProjectItemID FK
-    float QuantityShipped
-    float QuantityReceived
-    float QuantityDamagedInTransit
+    decimal QuantityShipped
+    decimal QuantityReceived
+    decimal QuantityDamagedInTransit
 }
 
 SiteOperations {
     int SiteOperationID PK
     int ProjectID FK
     int ProjectItemID FK
-    date OperationDate
-    float InstalledQuantity
-    float SupervisorLaborCost
-    float DailyExpenses
+    datetime OperationDate
+    decimal InstalledQuantity
+    decimal SupervisorLaborCost
+    decimal DailyExpenses
 }
 
 SiteMaterialConsumption {
     int SiteConsumptionID PK
     int SiteOperationID FK
     int MaterialID FK
-    float QuantityConsumed
+    decimal QuantityConsumed
 }
 
 JournalEntries {
     int JournalEntryID PK
     string ReferenceType
     int ReferenceID
-    date TransactionDate
+    datetime TransactionDate
     string Narration
 }
 
@@ -159,41 +177,48 @@ JournalEntryLines {
     int JournalEntryID FK
     int AccountID FK
     int ProjectID FK
-    float Debit
-    float Credit
+    decimal Debit
+    decimal Credit
 }
 
 ChartOfAccounts ||--o{ Customers : linked_account
-ChartOfAccounts ||--o{ JournalEntryLines : accounting_entries
+ChartOfAccounts ||--o{ JournalEntryLines : accounting_lines
 
 Customers ||--o{ Projects : owns
 
 Projects ||--o{ ProjectItems : contains
 Projects ||--o{ ProjectMolds : allocates
+Projects ||--o{ InventoryTransactions : stock_movements
 Projects ||--o{ ProductionOrders : production
 Projects ||--o{ DeliveryOrders : deliveries
 Projects ||--o{ SiteOperations : site_work
 Projects ||--o{ JournalEntryLines : cost_center
 
-ProjectItems ||--o{ ProductionOrders : product
-ProjectItems ||--o{ DeliveryItems : shipped_items
-ProjectItems ||--o{ SiteOperations : installed_items
+ProjectItems ||--o{ ProductionOrders : produced_as
+ProjectItems ||--o{ DeliveryItems : delivered_as
+ProjectItems ||--o{ SiteOperations : installed_as
 
-Molds ||--o{ ProjectMolds : assigned
+InventoryItems ||--o{ InventoryTransactions : tracked_by
+InventoryItems ||--o{ MixIngredients : raw_material
+InventoryItems ||--o{ ProductionMaterialConsumption : consumed_in_factory
+InventoryItems ||--o{ SiteMaterialConsumption : consumed_on_site
+
+Molds ||--o{ ProjectMolds : assigned_to
 Molds ||--o{ ProductionOrders : used_in
 
 MixDesigns ||--o{ MixIngredients : contains
 MixDesigns ||--o{ ProductionOrders : applied_in
 
-InventoryItems ||--o{ MixIngredients : raw_material
-InventoryItems ||--o{ ProductionMaterialConsumption : consumed_material
-InventoryItems ||--o{ SiteMaterialConsumption : site_material
-
 ProductionOrders ||--o{ ProductionMaterialConsumption : material_usage
 
-DeliveryOrders ||--o{ DeliveryItems : delivery_details
+DeliveryOrders ||--o{ DeliveryItems : delivery_lines
 
-SiteOperations ||--o{ SiteMaterialConsumption : material_consumption
+SiteOperations ||--o{ SiteMaterialConsumption : material_usage
 
 JournalEntries ||--o{ JournalEntryLines : entry_lines
 ```
+
+## Reporting Views
+
+- `ProjectCostSummary`: summarizes project estimated budget, production direct cost, site direct cost, and total direct cost.
+- `JournalEntryBalance`: summarizes debit, credit, and balance difference for each journal entry.
