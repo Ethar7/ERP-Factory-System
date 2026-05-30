@@ -4,7 +4,7 @@
 
 - [Workflow](docs/workflow.md)
 - [ERD](docs/erd.md)
-- [Database](database/schema.sql)
+- [API](docs/api-design.md)
 
 ---
 
