@@ -3,10 +3,14 @@ using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ErpFactory.Api.DTOS;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
-[Route("api/v1/site-operations")]
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,ProjectManager")]
 public sealed class SiteOperationsController(ErpFactoryDbContext db) : ApiControllerBase
 {
     [HttpGet]
@@ -41,14 +45,21 @@ public sealed class SiteOperationsController(ErpFactoryDbContext db) : ApiContro
         };
 
         db.SiteOperations.Add(operation);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex)
+        {
+            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+        }
         return CreatedResponse(nameof(GetSiteOperationById), new { siteOperationId = operation.SiteOperationId }, new IdResponse(operation.SiteOperationId));
     }
 
     [HttpPut("{siteOperationId:int}")]
     public async Task<ActionResult<ApiResponse<SiteOperation>>> Update(int siteOperationId, CreateSiteOperationRequest request, CancellationToken ct)
     {
-        var operation = await db.SiteOperations.FindAsync([siteOperationId], ct);
+        var operation = await db.SiteOperations.FindAsync(new object[] { siteOperationId }, ct);
         if (operation is null)
         {
             return NotFoundResponse<SiteOperation>();
@@ -80,5 +91,12 @@ public sealed class SiteOperationsController(ErpFactoryDbContext db) : ApiContro
         db.SiteMaterialConsumption.Add(consumption);
         await db.SaveChangesAsync(ct);
         return OkResponse(new IdResponse(consumption.SiteConsumptionId), "Resource created successfully");
+    }
+
+    [HttpGet("project/{projectId:int}/cost-summary")]
+    public async Task<ActionResult<ApiResponse<ProjectCostSummary>>> ProjectCostSummary(int projectId, CancellationToken ct)
+    {
+        var summary = await db.ProjectCostSummary.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == projectId, ct);
+        return summary is null ? NotFoundResponse<ProjectCostSummary>() : OkResponse(summary);
     }
 }

@@ -3,10 +3,13 @@ using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
-[Route("api/v1/delivery-orders")]
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,ProjectManager")]
 public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiControllerBase
 {
     [HttpGet]
@@ -41,14 +44,21 @@ public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiContro
         };
 
         db.DeliveryOrders.Add(order);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex)
+        {
+            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+        }
         return CreatedResponse(nameof(GetDeliveryOrderById), new { deliveryOrderId = order.DeliveryOrderId }, new IdResponse(order.DeliveryOrderId));
     }
 
     [HttpPut("{deliveryOrderId:int}")]
     public async Task<ActionResult<ApiResponse<DeliveryOrder>>> Update(int deliveryOrderId, CreateDeliveryOrderRequest request, CancellationToken ct)
     {
-        var order = await db.DeliveryOrders.FindAsync([deliveryOrderId], ct);
+        var order = await db.DeliveryOrders.FindAsync(new object[] { deliveryOrderId }, ct);
         if (order is null)
         {
             return NotFoundResponse<DeliveryOrder>();
@@ -66,7 +76,7 @@ public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiContro
     [HttpPatch("{deliveryOrderId:int}/status")]
     public async Task<ActionResult<ApiResponse<DeliveryOrder>>> UpdateStatus(int deliveryOrderId, UpdateDeliveryStatusRequest request, CancellationToken ct)
     {
-        var order = await db.DeliveryOrders.FindAsync([deliveryOrderId], ct);
+        var order = await db.DeliveryOrders.FindAsync(new object[] { deliveryOrderId }, ct);
         if (order is null)
         {
             return NotFoundResponse<DeliveryOrder>();
@@ -92,5 +102,42 @@ public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiContro
         db.DeliveryItems.Add(item);
         await db.SaveChangesAsync(ct);
         return OkResponse(new IdResponse(item.DeliveryItemId), "Resource created successfully");
+    }
+
+    [HttpGet("{deliveryOrderId:int}/tracking")]
+    public async Task<ActionResult<ApiResponse<object>>> Tracking(int deliveryOrderId, CancellationToken ct)
+    {
+        var order = await db.DeliveryOrders.AsNoTracking().Include(x => x.Items).FirstOrDefaultAsync(x => x.DeliveryOrderId == deliveryOrderId, ct);
+        if (order is null) return NotFoundResponse<object>();
+
+        return OkResponse<object>(new
+        {
+            order.DeliveryOrderId,
+            order.DeliveryTicketNumber,
+            order.LoadingTicketNumber,
+            order.DriverName,
+            order.VehicleNumber,
+            order.DeliveryStatus,
+            Items = order.Items.Select(i => new { i.DeliveryItemId, i.ProjectItemId, i.QuantityShipped, i.QuantityReceived, i.QuantityDamagedInTransit })
+        });
+    }
+
+    [HttpPatch("{deliveryOrderId:int}/items/{deliveryItemId:int}/receive-confirmation")]
+    public async Task<ActionResult<ApiResponse<DeliveryItem>>> ConfirmReceive(
+        int deliveryOrderId,
+        int deliveryItemId,
+        ReceiveDeliveryItemRequest request,
+        CancellationToken ct)
+    {
+        var item = await db.DeliveryItems.FirstOrDefaultAsync(x => x.DeliveryOrderId == deliveryOrderId && x.DeliveryItemId == deliveryItemId, ct);
+        if (item is null)
+        {
+            return NotFoundResponse<DeliveryItem>();
+        }
+
+        item.QuantityReceived = request.QuantityReceived;
+        item.QuantityDamagedInTransit = request.QuantityDamagedInTransit;
+        await db.SaveChangesAsync(ct);
+        return OkResponse(item);
     }
 }

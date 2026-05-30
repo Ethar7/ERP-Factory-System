@@ -2,8 +2,9 @@ CREATE TABLE ChartOfAccounts (
     AccountID INT IDENTITY(1,1) PRIMARY KEY,
     AccountCode NVARCHAR(50) NOT NULL UNIQUE,
     AccountName NVARCHAR(150) NOT NULL,
-    AccountType NVARCHAR(50) NOT NULL,
-    CONSTRAINT CK_ChartOfAccounts_AccountType CHECK (AccountType IN ('Asset', 'Liability', 'Equity', 'Revenue', 'Expense'))
+    AccountType NVARCHAR(50) NOT NULL, 
+    CONSTRAINT CK_ChartOfAccounts_AccountType 
+    CHECK (AccountType IN ('Asset', 'Liability', 'Equity', 'Revenue', 'Expense'))
 );
 
 CREATE TABLE Customers (

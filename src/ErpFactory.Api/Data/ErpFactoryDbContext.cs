@@ -1,10 +1,16 @@
+
 using ErpFactory.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using ErpFactory.Api.DTOS;
 
 namespace ErpFactory.Api.Data;
 
-public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> options) : DbContext(options)
+public sealed class ErpFactoryDbContext : DbContext
 {
+    public ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> options) : base(options)
+    {
+    }
+
     public DbSet<ChartOfAccount> ChartOfAccounts => Set<ChartOfAccount>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Project> Projects => Set<Project>();
@@ -25,6 +31,8 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
     public DbSet<JournalEntryLine> JournalEntryLines => Set<JournalEntryLine>();
     public DbSet<ProjectCostSummary> ProjectCostSummary => Set<ProjectCostSummary>();
     public DbSet<JournalEntryBalance> JournalEntryBalance => Set<JournalEntryBalance>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<Role> Roles => Set<Role>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +45,15 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
         ConfigureDelivery(modelBuilder);
         ConfigureSite(modelBuilder);
         ConfigureReports(modelBuilder);
+        ConfigureUsers(modelBuilder);
+
+        modelBuilder.Entity<Role>().HasData(
+    new Role { RoleId = 1, Name = "Admin" },
+    new Role { RoleId = 2, Name = "ProjectManager" },
+    new Role { RoleId = 3, Name = "InventoryUser" },
+    new Role { RoleId = 4, Name = "Accountant" },
+    new Role { RoleId = 5, Name = "Viewer" }
+);
     }
 
     private static void ConfigureAccounting(ModelBuilder modelBuilder)
@@ -265,5 +282,27 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
     {
         modelBuilder.Entity<ProjectCostSummary>().HasNoKey().ToView("ProjectCostSummary");
         modelBuilder.Entity<JournalEntryBalance>().HasNoKey().ToView("JournalEntryBalance");
+    }
+
+    private static void ConfigureUsers(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(x => x.UserId);
+
+            entity.Property(x => x.Username).HasMaxLength(100);
+            entity.Property(x => x.Email).HasMaxLength(150);
+
+            entity.HasOne(x => x.Role)
+                  .WithMany(r => r.Users)
+                  .HasForeignKey(x => x.RoleId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(x => x.RoleId);
+            entity.HasIndex(x => x.Name).IsUnique();
+        });
     }
 }

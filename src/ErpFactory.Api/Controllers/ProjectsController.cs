@@ -2,10 +2,15 @@ using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using ErpFactory.Api.DTOS;
 using Microsoft.EntityFrameworkCore;
 
 namespace ErpFactory.Api.Controllers;
 
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,ProjectManager")]
 public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBase
 {
     [HttpGet]
@@ -50,18 +55,25 @@ public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBa
             CustomerId = request.CustomerId,
             StartDate = request.StartDate ?? DateTime.Now,
             TotalEstimatedBudget = request.TotalEstimatedBudget,
-            Items = request.Items?.Select(ToProjectItem).ToList() ?? []
+            Items = request.Items?.Select(ToProjectItem).ToList() ?? new List<ProjectItem>()
         };
 
         db.Projects.Add(project);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex)
+        {
+            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+        }
         return CreatedResponse(nameof(GetProjectById), new { projectId = project.ProjectId }, new IdResponse(project.ProjectId));
     }
 
     [HttpPut("{projectId:int}")]
     public async Task<ActionResult<ApiResponse<Project>>> Update(int projectId, CreateProjectRequest request, CancellationToken ct)
     {
-        var project = await db.Projects.FindAsync([projectId], ct);
+        var project = await db.Projects.FindAsync(new object[] { projectId }, ct);
         if (project is null)
         {
             return NotFoundResponse<Project>();
@@ -79,7 +91,7 @@ public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBa
     [HttpPatch("{projectId:int}/status")]
     public async Task<ActionResult<ApiResponse<Project>>> UpdateStatus(int projectId, UpdateProjectStatusRequest request, CancellationToken ct)
     {
-        var project = await db.Projects.FindAsync([projectId], ct);
+        var project = await db.Projects.FindAsync(new object[] { projectId }, ct);
         if (project is null)
         {
             return NotFoundResponse<Project>();
@@ -130,4 +142,62 @@ public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBa
         EstimatedUnitPrice = request.EstimatedUnitPrice,
         TaxRate = request.TaxRate
     };
+
+    [HttpGet("{projectId:int}/summary")]
+    public async Task<ActionResult<ApiResponse<ProjectCostSummary>>> Summary(int projectId, CancellationToken ct)
+    {
+        var summary = await db.ProjectCostSummary.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == projectId, ct);
+        return summary is null ? NotFoundResponse<ProjectCostSummary>() : OkResponse(summary);
+    }
+
+    [HttpGet("{projectId:int}/dashboard")]
+    public async Task<ActionResult<ApiResponse<object>>> Dashboard(int projectId, CancellationToken ct)
+    {
+        var project = await db.Projects.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == projectId, ct);
+        if (project is null)
+            return NotFoundResponse<object>();
+
+        var production = await db.ProductionOrders.AsNoTracking()
+            .Where(x => x.ProjectId == projectId)
+            .GroupBy(x => x.ProjectId)
+            .Select(g => new
+            {
+                TargetQuantity = g.Sum(x => x.TargetQuantity),
+                ProducedQuantity = g.Sum(x => x.ProducedQuantity),
+                GoodQuantity = g.Sum(x => x.GoodQuantity),
+                RejectedQuantity = g.Sum(x => x.RejectedQuantity)
+            })
+            .FirstOrDefaultAsync(ct);
+
+        var delivery = await db.DeliveryItems.AsNoTracking()
+            .Where(x => x.DeliveryOrder != null && x.DeliveryOrder.ProjectId == projectId)
+            .GroupBy(x => x.DeliveryOrder!.ProjectId)
+            .Select(g => new
+            {
+                QuantityShipped = g.Sum(x => x.QuantityShipped),
+                QuantityReceived = g.Sum(x => x.QuantityReceived ?? 0),
+                QuantityDamagedInTransit = g.Sum(x => x.QuantityDamagedInTransit)
+            })
+            .FirstOrDefaultAsync(ct);
+
+        var installation = await db.SiteOperations.AsNoTracking()
+            .Where(x => x.ProjectId == projectId)
+            .GroupBy(x => x.ProjectId)
+            .Select(g => new
+            {
+                InstalledQuantity = g.Sum(x => x.InstalledQuantity),
+                SiteCost = g.Sum(x => x.SupervisorLaborCost + x.DailyExpenses)
+            })
+            .FirstOrDefaultAsync(ct);
+
+        return OkResponse<object>(new
+        {
+            project.ProjectId,
+            project.ProjectName,
+            EstimatedBudget = project.TotalEstimatedBudget,
+            Production = production ?? new { TargetQuantity = 0m, ProducedQuantity = 0m, GoodQuantity = 0m, RejectedQuantity = 0m },
+            Delivery = delivery ?? new { QuantityShipped = 0m, QuantityReceived = 0m, QuantityDamagedInTransit = 0m },
+            Installation = installation ?? new { InstalledQuantity = 0m, SiteCost = 0m }
+        });
+    }
 }

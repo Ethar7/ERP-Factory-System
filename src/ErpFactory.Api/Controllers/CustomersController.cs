@@ -3,9 +3,13 @@ using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,ProjectManager")]
 public sealed class CustomersController(ErpFactoryDbContext db) : ApiControllerBase
 {
     [HttpGet]
@@ -36,7 +40,14 @@ public sealed class CustomersController(ErpFactoryDbContext db) : ApiControllerB
         };
 
         db.Customers.Add(customer);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex)
+        {
+            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+        }
         return CreatedResponse(nameof(GetCustomerById), new { customerId = customer.CustomerId }, new IdResponse(customer.CustomerId));
     }
 
@@ -58,5 +69,12 @@ public sealed class CustomersController(ErpFactoryDbContext db) : ApiControllerB
 
         await db.SaveChangesAsync(ct);
         return OkResponse(customer);
+    }
+
+    [HttpGet("{customerId:int}/projects")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<Project>>>> GetProjects(int customerId, CancellationToken ct)
+    {
+        var projects = await db.Projects.AsNoTracking().Where(x => x.CustomerId == customerId).OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
+        return OkCollection(projects);
     }
 }

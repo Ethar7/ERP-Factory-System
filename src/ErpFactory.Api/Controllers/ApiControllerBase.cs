@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace ErpFactory.Api.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize]
 public abstract class ApiControllerBase : ControllerBase
 {
+
     protected ActionResult<ApiResponse<T>> OkResponse<T>(T data, string message = "Operation completed successfully") =>
         Ok(ApiResponse<T>.Ok(data, message));
 

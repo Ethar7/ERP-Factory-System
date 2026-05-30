@@ -3,10 +3,13 @@ using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
-[Route("api/v1/production-orders")]
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,ProjectManager")]
 public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiControllerBase
 {
     [HttpGet]
@@ -43,21 +46,28 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
             ProjectItemId = request.ProjectItemId,
             MixDesignId = request.MixDesignId,
             MoldId = request.MoldId,
-            BatchNumber = request.BatchNumber,
+            BatchNumber = request.BatchNumber ?? string.Empty,
             TargetQuantity = request.TargetQuantity,
             LaborCost = request.LaborCost,
             MoldDepreciationCost = request.MoldDepreciationCost
         };
 
         db.ProductionOrders.Add(order);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex)
+        {
+            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+        }
         return CreatedResponse(nameof(GetProductionOrderById), new { productionOrderId = order.ProductionOrderId }, new IdResponse(order.ProductionOrderId));
     }
 
     [HttpPut("{productionOrderId:int}")]
     public async Task<ActionResult<ApiResponse<ProductionOrder>>> Update(int productionOrderId, CreateProductionOrderRequest request, CancellationToken ct)
     {
-        var order = await db.ProductionOrders.FindAsync([productionOrderId], ct);
+        var order = await db.ProductionOrders.FindAsync(new object[] { productionOrderId }, ct);
         if (order is null)
         {
             return NotFoundResponse<ProductionOrder>();
@@ -67,7 +77,7 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
         order.ProjectItemId = request.ProjectItemId;
         order.MixDesignId = request.MixDesignId;
         order.MoldId = request.MoldId;
-        order.BatchNumber = request.BatchNumber;
+        order.BatchNumber = request.BatchNumber ?? string.Empty;
         order.TargetQuantity = request.TargetQuantity;
         order.LaborCost = request.LaborCost;
         order.MoldDepreciationCost = request.MoldDepreciationCost;
@@ -79,7 +89,7 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
     [HttpPatch("{productionOrderId:int}/status")]
     public async Task<ActionResult<ApiResponse<ProductionOrder>>> UpdateStatus(int productionOrderId, UpdateProductionStatusRequest request, CancellationToken ct)
     {
-        var order = await db.ProductionOrders.FindAsync([productionOrderId], ct);
+        var order = await db.ProductionOrders.FindAsync(new object[] { productionOrderId }, ct);
         if (order is null)
         {
             return NotFoundResponse<ProductionOrder>();
@@ -93,7 +103,7 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
     [HttpPatch("{productionOrderId:int}/quality-check")]
     public async Task<ActionResult<ApiResponse<ProductionOrder>>> RecordQualityCheck(int productionOrderId, RecordQualityCheckRequest request, CancellationToken ct)
     {
-        var order = await db.ProductionOrders.FindAsync([productionOrderId], ct);
+        var order = await db.ProductionOrders.FindAsync(new object[] { productionOrderId }, ct);
         if (order is null)
         {
             return NotFoundResponse<ProductionOrder>();
@@ -142,5 +152,84 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
         order.IsAccountingPosted = true;
         await db.SaveChangesAsync(ct);
         return OkResponse(order, "Accounting posting flag updated");
+    }
+
+    [HttpPost("{productionOrderId:int}/inventory-posting")]
+    public async Task<ActionResult<ApiResponse<object>>> InventoryPosting(int productionOrderId, CancellationToken ct)
+    {
+        var order = await db.ProductionOrders.Include(x => x.MaterialConsumption).FirstOrDefaultAsync(x => x.ProductionOrderId == productionOrderId, ct);
+        if (order is null) return NotFoundResponse<object>();
+
+        // load related inventory items
+        var materialIds = order.MaterialConsumption.Select(x => x.MaterialId).Distinct().ToList();
+        var materials = await db.InventoryItems.Where(x => materialIds.Contains(x.ItemId)).ToListAsync(ct);
+
+        using var tx = await db.Database.BeginTransactionAsync(ct);
+        try
+        {
+            foreach (var mc in order.MaterialConsumption)
+            {
+                var item = materials.FirstOrDefault(x => x.ItemId == mc.MaterialId);
+                if (item is null) continue;
+
+                // create an inventory transaction representing consumption
+                var invTx = new InventoryTransaction
+                {
+                    ItemId = item.ItemId,
+                    ProjectId = order.ProjectId,
+                    TransactionType = "ProductionConsumption",
+                    Quantity = mc.ActualQtyConsumed,
+                    UnitCost = item.AverageCost,
+                    TransactionDate = DateTime.Now,
+                    ReferenceType = "ProductionOrder",
+                    ReferenceId = productionOrderId,
+                    Notes = "Posted from production order inventory posting"
+                };
+                db.InventoryTransactions.Add(invTx);
+
+                // decrement current stock
+                item.CurrentStock -= mc.ActualQtyConsumed;
+                if (item.CurrentStock < 0) item.CurrentStock = 0;
+            }
+
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            return OkResponse<object>(new { productionOrderId, message = "Inventory posting completed" });
+        }
+        catch (DbUpdateException ex)
+        {
+            await tx.RollbackAsync(ct);
+            return BadRequest(ApiResponse<object>.Fail("Inventory posting failed: " + ex.Message));
+        }
+    }
+
+    [HttpGet("{productionOrderId:int}/progress")]
+    public async Task<ActionResult<ApiResponse<object>>> GetProgress(int productionOrderId, CancellationToken ct)
+    {
+        var order = await db.ProductionOrders.AsNoTracking().FirstOrDefaultAsync(x => x.ProductionOrderId == productionOrderId, ct);
+        return order is null ? NotFoundResponse<object>() : OkResponse<object>(new
+        {
+            order.ProductionOrderId,
+            order.BatchNumber,
+            order.TargetQuantity,
+            order.ProducedQuantity,
+            order.GoodQuantity,
+            order.RejectedQuantity,
+            Progress = order.TargetQuantity == 0 ? 0m : Math.Round(order.ProducedQuantity / order.TargetQuantity * 100, 2)
+        });
+    }
+
+    [HttpGet("in-progress")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<ProductionOrder>>>> InProgress(CancellationToken ct)
+    {
+        var rows = await db.ProductionOrders.AsNoTracking().Where(x => x.ProductionStatus != "Completed").OrderByDescending(x => x.OrderDate).ToListAsync(ct);
+        return OkCollection(rows);
+    }
+
+    [HttpGet("completed")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<ProductionOrder>>>> Completed(CancellationToken ct)
+    {
+        var rows = await db.ProductionOrders.AsNoTracking().Where(x => x.ProductionStatus == "Completed").OrderByDescending(x => x.OrderDate).ToListAsync(ct);
+        return OkCollection(rows);
     }
 }

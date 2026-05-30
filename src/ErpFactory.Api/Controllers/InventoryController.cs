@@ -2,11 +2,14 @@ using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace ErpFactory.Api.Controllers;
 
-[Route("api/v1/inventory")]
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,InventoryUser")]
 public sealed class InventoryController(ErpFactoryDbContext db) : ApiControllerBase
 {
     [HttpGet("items")]
@@ -95,5 +98,26 @@ public sealed class InventoryController(ErpFactoryDbContext db) : ApiControllerB
         db.InventoryTransactions.Add(transaction);
         await db.SaveChangesAsync(ct);
         return OkResponse(new IdResponse(transaction.TransactionId), "Resource created successfully");
+    }
+
+    [HttpGet("items/{itemId:int}/balance")]
+    public async Task<ActionResult<ApiResponse<object>>> GetItemBalance(int itemId, CancellationToken ct)
+    {
+        var item = await db.InventoryItems.AsNoTracking().FirstOrDefaultAsync(x => x.ItemId == itemId, ct);
+        return item is null ? NotFoundResponse<object>() : OkResponse<object>(new { item.ItemId, item.ItemName, Balance = item.CurrentStock });
+    }
+
+    [HttpGet("items/{itemId:int}/transactions")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<InventoryTransaction>>>> GetItemTransactions(int itemId, CancellationToken ct)
+    {
+        var tx = await db.InventoryTransactions.AsNoTracking().Where(x => x.ItemId == itemId).OrderByDescending(x => x.TransactionDate).ToListAsync(ct);
+        return OkCollection(tx);
+    }
+
+    [HttpGet("low-stock")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<InventoryItem>>>> LowStock(CancellationToken ct, [FromQuery] decimal threshold = 5m)
+    {
+        var items = await db.InventoryItems.AsNoTracking().Where(x => x.CurrentStock <= threshold).OrderBy(x => x.ItemName).ToListAsync(ct);
+        return OkCollection(items);
     }
 }

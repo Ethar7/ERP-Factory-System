@@ -3,9 +3,13 @@ using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,ProjectManager")]
 public sealed class MoldsController(ErpFactoryDbContext db) : ApiControllerBase
 {
     [HttpGet]
@@ -65,5 +69,28 @@ public sealed class MoldsController(ErpFactoryDbContext db) : ApiControllerBase
         mold.MoldStatus = request.MoldStatus;
         await db.SaveChangesAsync(ct);
         return OkResponse(mold);
+    }
+
+    [HttpGet("{moldId:int}/usage-history")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<object>>>> UsageHistory(int moldId, CancellationToken ct)
+    {
+        var rows = await db.ProductionOrders.AsNoTracking().Where(x => x.MoldId == moldId)
+            .Select(x => new { x.ProductionOrderId, x.BatchNumber, x.OrderDate, x.TargetQuantity, x.ProducedQuantity })
+            .OrderByDescending(x => x.OrderDate)
+            .Cast<object>()
+            .ToListAsync(ct);
+        return OkCollection(rows);
+    }
+
+    [HttpGet("{moldId:int}/cost-analysis")]
+    public async Task<ActionResult<ApiResponse<object>>> CostAnalysis(int moldId, CancellationToken ct)
+    {
+        var mold = await db.Molds.AsNoTracking().FirstOrDefaultAsync(x => x.MoldId == moldId, ct);
+        if (mold is null) return NotFoundResponse<object>();
+
+        var usage = await db.ProductionOrders.AsNoTracking().Where(x => x.MoldId == moldId).ToListAsync(ct);
+        var uses = usage.Count;
+        var totalDepreciation = usage.Sum(x => x.MoldDepreciationCost);
+        return OkResponse<object>(new { mold.MoldId, mold.MoldName, Uses = uses, TotalDepreciation = totalDepreciation, CostToBuild = mold.CostToBuild });
     }
 }

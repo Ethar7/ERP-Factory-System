@@ -3,10 +3,14 @@ using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ErpFactory.Api.DTOS;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
-[Route("api/v1/reports")]
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,ProjectManager,Accountant")]
 public sealed class ReportsController(ErpFactoryDbContext db) : ApiControllerBase
 {
     [HttpGet("project-cost-summary")]

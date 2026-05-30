@@ -77,14 +77,6 @@ Molds {
     string MoldStatus
 }
 
-ProjectMolds {
-    int ProjectMoldID PK
-    int ProjectID FK
-    int MoldID FK
-    int AllocQuantity
-    datetime AllocatedAt
-}
-
 MixDesigns {
     int MixDesignID PK
     string MixName
@@ -187,7 +179,6 @@ ChartOfAccounts ||--o{ JournalEntryLines : accounting_lines
 Customers ||--o{ Projects : owns
 
 Projects ||--o{ ProjectItems : contains
-Projects ||--o{ ProjectMolds : allocates
 Projects ||--o{ InventoryTransactions : stock_movements
 Projects ||--o{ ProductionOrders : production
 Projects ||--o{ DeliveryOrders : deliveries
@@ -203,7 +194,6 @@ InventoryItems ||--o{ MixIngredients : raw_material
 InventoryItems ||--o{ ProductionMaterialConsumption : consumed_in_factory
 InventoryItems ||--o{ SiteMaterialConsumption : consumed_on_site
 
-Molds ||--o{ ProjectMolds : assigned_to
 Molds ||--o{ ProductionOrders : used_in
 
 MixDesigns ||--o{ MixIngredients : contains

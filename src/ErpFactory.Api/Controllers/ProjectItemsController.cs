@@ -2,10 +2,13 @@ using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
-[Route("api/v1/project-items")]
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin,ProjectManager")]
 public sealed class ProjectItemsController(ErpFactoryDbContext db) : ApiControllerBase
 {
     [HttpPut("{projectItemId:int}")]
