@@ -38,5 +38,5 @@ src/ErpFactory.Api/appsettings.json
 Default API base URL:
 
 ```text
-/api/v1
+api/
 ```
