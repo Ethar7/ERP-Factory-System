@@ -218,10 +218,10 @@ DeliveryOrders ||--o{ DeliveryItems : delivery_lines
 SiteOperations ||--o{ SiteMaterialConsumption : material_usage
 
 JournalEntries ||--o{ JournalEntryLines : entry_lines
-ROLES ||--o{ USERS : "has"
-USERS ||--o{ PROJECTS : "creates"
-USERS ||--o{ PRODUCTIONORDERS : "manages"
-USERS ||--o{ JOURNALENTRIES : "posts"
+ROLES ||--o{ USERS : has
+USERS ||--o{ PROJECTS : creates
+USERS ||--o{ PRODUCTIONORDERS : manages
+USERS ||--o{ JOURNALENTRIES : posts
 ```
 
 ## Reporting Views
