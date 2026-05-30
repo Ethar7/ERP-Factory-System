@@ -31,6 +31,8 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         ConfigureAccounting(modelBuilder);
         ConfigureProjects(modelBuilder);
         ConfigureInventory(modelBuilder);
@@ -41,6 +43,18 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
         ConfigureSite(modelBuilder);
         ConfigureReports(modelBuilder);
         ConfigureUsers(modelBuilder);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(decimal) || property.ClrType == typeof(decimal?))
+                {
+                    property.SetPrecision(18);
+                    property.SetScale(2);
+                }
+            }
+        }
 
         modelBuilder.Entity<Role>().HasData(
             new Role { RoleId = 1, Name = "Admin" },
@@ -73,8 +87,6 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
         modelBuilder.Entity<JournalEntryLine>(entity =>
         {
             entity.HasKey(x => x.JournalLineId);
-            entity.Property(x => x.Debit).HasPrecision(18, 2);
-            entity.Property(x => x.Credit).HasPrecision(18, 2);
             entity.HasOne(x => x.JournalEntry).WithMany(x => x.Lines).HasForeignKey(x => x.JournalEntryId);
             entity.HasOne(x => x.Account).WithMany(x => x.JournalEntryLines).HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne(x => x.Project).WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.SetNull);
@@ -101,7 +113,6 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
             entity.HasKey(x => x.ProjectId);
             entity.Property(x => x.ProjectName).HasMaxLength(150);
             entity.Property(x => x.ProjectStatus).HasMaxLength(50).HasDefaultValue("Draft");
-            entity.Property(x => x.TotalEstimatedBudget).HasPrecision(18, 2);
             entity.Property(x => x.StartDate).HasDefaultValueSql("sysutcdatetime()");
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("sysutcdatetime()");
             entity.HasOne(x => x.Customer).WithMany(x => x.Projects).HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.NoAction);
@@ -114,8 +125,6 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
             entity.Property(x => x.ItemCode).HasMaxLength(50);
             entity.Property(x => x.ItemName).HasMaxLength(200);
             entity.Property(x => x.Unit).HasMaxLength(50);
-            entity.Property(x => x.RequiredQuantity).HasPrecision(18, 2);
-            entity.Property(x => x.EstimatedUnitPrice).HasPrecision(18, 2);
             entity.Property(x => x.TaxRate).HasPrecision(5, 2);
             entity.Property(x => x.TaxAmount).HasComputedColumnSql("[RequiredQuantity] * [EstimatedUnitPrice] * ([TaxRate] / 100.0)");
             entity.Property(x => x.TotalPrice).HasComputedColumnSql("[RequiredQuantity] * [EstimatedUnitPrice]");
@@ -132,16 +141,12 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
             entity.Property(x => x.ItemName).HasMaxLength(150);
             entity.Property(x => x.ItemType).HasMaxLength(50);
             entity.Property(x => x.Unit).HasMaxLength(50);
-            entity.Property(x => x.CurrentStock).HasPrecision(18, 4);
-            entity.Property(x => x.AverageCost).HasPrecision(18, 2);
         });
 
         modelBuilder.Entity<InventoryTransaction>(entity =>
         {
             entity.HasKey(x => x.TransactionId);
             entity.Property(x => x.TransactionType).HasMaxLength(50);
-            entity.Property(x => x.Quantity).HasPrecision(18, 4);
-            entity.Property(x => x.UnitCost).HasPrecision(18, 2);
             entity.Property(x => x.TransactionDate).HasDefaultValueSql("sysutcdatetime()");
             entity.Property(x => x.ReferenceType).HasMaxLength(50);
             entity.Property(x => x.Notes).HasMaxLength(250);
@@ -156,7 +161,6 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
         {
             entity.HasKey(x => x.MoldId);
             entity.Property(x => x.MoldName).HasMaxLength(100);
-            entity.Property(x => x.CostToBuild).HasPrecision(18, 2);
             entity.Property(x => x.MoldStatus).HasMaxLength(50).HasDefaultValue("Available");
         });
 
@@ -178,14 +182,12 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
             entity.HasIndex(x => x.MixName).IsUnique();
             entity.Property(x => x.MixName).HasMaxLength(100);
             entity.Property(x => x.TargetStrength).HasMaxLength(50);
-            entity.Property(x => x.StandardCostPerUnit).HasPrecision(18, 2);
         });
 
         modelBuilder.Entity<MixIngredient>(entity =>
         {
             entity.HasKey(x => x.IngredientId);
             entity.HasIndex(x => new { x.MixDesignId, x.RawMaterialId }).IsUnique();
-            entity.Property(x => x.StandardQtyPerUnit).HasPrecision(18, 4);
             entity.HasOne(x => x.MixDesign).WithMany(x => x.Ingredients).HasForeignKey(x => x.MixDesignId);
             entity.HasOne(x => x.RawMaterial).WithMany().HasForeignKey(x => x.RawMaterialId).OnDelete(DeleteBehavior.NoAction);
         });
@@ -198,12 +200,6 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
             entity.HasKey(x => x.ProductionOrderId);
             entity.HasIndex(x => x.BatchNumber).IsUnique();
             entity.Property(x => x.BatchNumber).HasMaxLength(50);
-            entity.Property(x => x.TargetQuantity).HasPrecision(18, 2);
-            entity.Property(x => x.ProducedQuantity).HasPrecision(18, 2);
-            entity.Property(x => x.GoodQuantity).HasPrecision(18, 2);
-            entity.Property(x => x.RejectedQuantity).HasPrecision(18, 2);
-            entity.Property(x => x.LaborCost).HasPrecision(18, 2);
-            entity.Property(x => x.MoldDepreciationCost).HasPrecision(18, 2);
             entity.Property(x => x.OrderDate).HasDefaultValueSql("sysutcdatetime()");
             entity.Property(x => x.ProductionStatus).HasMaxLength(50).HasDefaultValue("Setup");
             entity.HasOne(x => x.Project).WithMany(x => x.ProductionOrders).HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.NoAction);
@@ -216,8 +212,6 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
         {
             entity.HasKey(x => x.ConsumptionId);
             entity.HasIndex(x => new { x.ProductionOrderId, x.MaterialId }).IsUnique();
-            entity.Property(x => x.ActualQtyConsumed).HasPrecision(18, 4);
-            entity.Property(x => x.StandardQtyExpected).HasPrecision(18, 4);
             entity.Property(x => x.WastageQty).HasComputedColumnSql("[ActualQtyConsumed] - [StandardQtyExpected]");
             entity.HasOne(x => x.ProductionOrder).WithMany(x => x.MaterialConsumption).HasForeignKey(x => x.ProductionOrderId);
             entity.HasOne(x => x.Material).WithMany().HasForeignKey(x => x.MaterialId).OnDelete(DeleteBehavior.NoAction);
@@ -242,9 +236,6 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
         {
             entity.HasKey(x => x.DeliveryItemId);
             entity.HasIndex(x => new { x.DeliveryOrderId, x.ProjectItemId }).IsUnique();
-            entity.Property(x => x.QuantityShipped).HasPrecision(18, 2);
-            entity.Property(x => x.QuantityReceived).HasPrecision(18, 2);
-            entity.Property(x => x.QuantityDamagedInTransit).HasPrecision(18, 2);
             entity.HasOne(x => x.DeliveryOrder).WithMany(x => x.Items).HasForeignKey(x => x.DeliveryOrderId);
             entity.HasOne(x => x.ProjectItem).WithMany().HasForeignKey(x => x.ProjectItemId).OnDelete(DeleteBehavior.NoAction);
         });
@@ -256,9 +247,6 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
         {
             entity.HasKey(x => x.SiteOperationId);
             entity.Property(x => x.OperationDate).HasDefaultValueSql("sysutcdatetime()");
-            entity.Property(x => x.InstalledQuantity).HasPrecision(18, 2);
-            entity.Property(x => x.SupervisorLaborCost).HasPrecision(18, 2);
-            entity.Property(x => x.DailyExpenses).HasPrecision(18, 2);
             entity.HasOne(x => x.Project).WithMany(x => x.SiteOperations).HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne(x => x.ProjectItem).WithMany().HasForeignKey(x => x.ProjectItemId).OnDelete(DeleteBehavior.NoAction);
         });
@@ -267,7 +255,6 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
         {
             entity.HasKey(x => x.SiteConsumptionId);
             entity.HasIndex(x => new { x.SiteOperationId, x.MaterialId }).IsUnique();
-            entity.Property(x => x.QuantityConsumed).HasPrecision(18, 4);
             entity.HasOne(x => x.SiteOperation).WithMany(x => x.Consumption).HasForeignKey(x => x.SiteOperationId);
             entity.HasOne(x => x.Material).WithMany().HasForeignKey(x => x.MaterialId).OnDelete(DeleteBehavior.NoAction);
         });
@@ -286,10 +273,7 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
             entity.HasKey(x => x.UserId);
             entity.Property(x => x.Username).HasMaxLength(100);
             entity.Property(x => x.Email).HasMaxLength(150);
-            entity.HasOne(x => x.Role)
-                  .WithMany(r => r.Users)
-                  .HasForeignKey(x => x.RoleId)
-                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.Role).WithMany(r => r.Users).HasForeignKey(x => x.RoleId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Role>(entity =>

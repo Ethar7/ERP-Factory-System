@@ -22,25 +22,28 @@ namespace ErpFactory.Api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ErpFactory.Api.DTOS.JournalEntryBalance", b =>
+            modelBuilder.Entity("ErpFactory.Api.Contracts.JournalEntryBalance", b =>
                 {
-                    b.Property<decimal?>("BalanceDifference")
+                    b.Property<decimal>("BalanceDifference")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("JournalEntryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ReferenceId")
+                    b.Property<int?>("ReferenceId")
                         .HasColumnType("int");
 
                     b.Property<string>("ReferenceType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("TotalCredit")
+                    b.Property<decimal>("TotalCredit")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("TotalDebit")
+                    b.Property<decimal>("TotalDebit")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.ToTable((string)null);
@@ -48,9 +51,10 @@ namespace ErpFactory.Api.Migrations
                     b.ToView("JournalEntryBalance", (string)null);
                 });
 
-            modelBuilder.Entity("ErpFactory.Api.DTOS.ProjectCostSummary", b =>
+            modelBuilder.Entity("ErpFactory.Api.Contracts.ProjectCostSummary", b =>
                 {
                     b.Property<decimal>("ProductionDirectCost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ProjectId")
@@ -61,12 +65,15 @@ namespace ErpFactory.Api.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("SiteDirectCost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalDirectCost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalEstimatedBudget")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.ToTable((string)null);
@@ -96,6 +103,12 @@ namespace ErpFactory.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("AccountId");
 
@@ -127,7 +140,7 @@ namespace ErpFactory.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("sysutcdatetime()");
 
                     b.Property<string>("CustomerName")
                         .IsRequired()
@@ -163,6 +176,9 @@ namespace ErpFactory.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DeliveryItemId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("DeliveryOrderId")
                         .HasColumnType("int");
 
@@ -180,6 +196,9 @@ namespace ErpFactory.Api.Migrations
                     b.Property<decimal>("QuantityShipped")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("DeliveryItemId");
 
@@ -199,10 +218,13 @@ namespace ErpFactory.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DeliveryOrderId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("DeliveryDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("sysutcdatetime()");
 
                     b.Property<string>("DeliveryStatus")
                         .IsRequired()
@@ -229,6 +251,9 @@ namespace ErpFactory.Api.Migrations
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("VehicleNumber")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -252,9 +277,12 @@ namespace ErpFactory.Api.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal>("CurrentStock")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ItemName")
                         .IsRequired()
@@ -271,6 +299,9 @@ namespace ErpFactory.Api.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("ItemId");
 
                     b.ToTable("InventoryItems");
@@ -284,6 +315,9 @@ namespace ErpFactory.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
 
@@ -295,8 +329,8 @@ namespace ErpFactory.Api.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Quantity")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("ReferenceId")
                         .HasColumnType("int");
@@ -308,7 +342,7 @@ namespace ErpFactory.Api.Migrations
                     b.Property<DateTime>("TransactionDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("sysutcdatetime()");
 
                     b.Property<string>("TransactionType")
                         .IsRequired()
@@ -318,6 +352,9 @@ namespace ErpFactory.Api.Migrations
                     b.Property<decimal>("UnitCost")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("TransactionId");
 
@@ -335,6 +372,9 @@ namespace ErpFactory.Api.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("JournalEntryId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsPosted")
                         .HasColumnType("bit");
@@ -355,7 +395,10 @@ namespace ErpFactory.Api.Migrations
                     b.Property<DateTime>("TransactionDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("sysutcdatetime()");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("JournalEntryId");
 
@@ -373,6 +416,9 @@ namespace ErpFactory.Api.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal>("Credit")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -386,6 +432,9 @@ namespace ErpFactory.Api.Migrations
 
                     b.Property<int?>("ProjectId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("JournalLineId");
 
@@ -406,6 +455,9 @@ namespace ErpFactory.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MixDesignId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("MixName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -418,6 +470,9 @@ namespace ErpFactory.Api.Migrations
                     b.Property<string>("TargetStrength")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("MixDesignId");
 
@@ -435,6 +490,9 @@ namespace ErpFactory.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IngredientId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("MixDesignId")
                         .HasColumnType("int");
 
@@ -442,8 +500,11 @@ namespace ErpFactory.Api.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("StandardQtyPerUnit")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("IngredientId");
 
@@ -467,6 +528,9 @@ namespace ErpFactory.Api.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("CurrentUsesCount")
                         .HasColumnType("int");
 
@@ -485,6 +549,9 @@ namespace ErpFactory.Api.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasDefaultValue("Available");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("MoldId");
 
                     b.ToTable("Molds");
@@ -499,8 +566,11 @@ namespace ErpFactory.Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsumptionId"));
 
                     b.Property<decimal>("ActualQtyConsumed")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("MaterialId")
                         .HasColumnType("int");
@@ -509,11 +579,15 @@ namespace ErpFactory.Api.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("StandardQtyExpected")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("WastageQty")
                         .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasComputedColumnSql("[ActualQtyConsumed] - [StandardQtyExpected]");
 
@@ -540,6 +614,9 @@ namespace ErpFactory.Api.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal>("GoodQuantity")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -564,7 +641,7 @@ namespace ErpFactory.Api.Migrations
                     b.Property<DateTime>("OrderDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("sysutcdatetime()");
 
                     b.Property<decimal>("ProducedQuantity")
                         .HasPrecision(18, 2)
@@ -590,6 +667,9 @@ namespace ErpFactory.Api.Migrations
                     b.Property<decimal>("TargetQuantity")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("ProductionOrderId");
 
@@ -618,7 +698,7 @@ namespace ErpFactory.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("sysutcdatetime()");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
@@ -641,7 +721,7 @@ namespace ErpFactory.Api.Migrations
                     b.Property<DateTime>("StartDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("sysutcdatetime()");
 
                     b.Property<decimal>("TotalEstimatedBudget")
                         .HasPrecision(18, 2)
@@ -664,6 +744,9 @@ namespace ErpFactory.Api.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectItemId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("EstimatedUnitPrice")
                         .HasPrecision(18, 2)
@@ -688,20 +771,23 @@ namespace ErpFactory.Api.Migrations
 
                     b.Property<decimal>("TaxAmount")
                         .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasComputedColumnSql("[RequiredQuantity] * [EstimatedUnitPrice] * ([TaxRate] / 100.0)");
 
                     b.Property<decimal>("TaxRate")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalPrice")
                         .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasComputedColumnSql("[RequiredQuantity] * [EstimatedUnitPrice]");
 
                     b.Property<decimal>("TotalPriceWithTax")
                         .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasComputedColumnSql("([RequiredQuantity] * [EstimatedUnitPrice]) + ([RequiredQuantity] * [EstimatedUnitPrice] * ([TaxRate] / 100.0))");
 
@@ -709,6 +795,9 @@ namespace ErpFactory.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("ProjectItemId");
 
@@ -732,13 +821,19 @@ namespace ErpFactory.Api.Migrations
                     b.Property<DateTime>("AllocatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("sysutcdatetime()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("MoldId")
                         .HasColumnType("int");
 
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("ProjectMoldId");
 
@@ -758,9 +853,15 @@ namespace ErpFactory.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("RoleId");
 
@@ -773,26 +874,31 @@ namespace ErpFactory.Api.Migrations
                         new
                         {
                             RoleId = 1,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Admin"
                         },
                         new
                         {
                             RoleId = 2,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "ProjectManager"
                         },
                         new
                         {
                             RoleId = 3,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "InventoryUser"
                         },
                         new
                         {
                             RoleId = 4,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Accountant"
                         },
                         new
                         {
                             RoleId = 5,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Viewer"
                         });
                 });
@@ -805,15 +911,21 @@ namespace ErpFactory.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SiteConsumptionId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("MaterialId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("QuantityConsumed")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("SiteOperationId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("SiteConsumptionId");
 
@@ -833,6 +945,9 @@ namespace ErpFactory.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SiteOperationId"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal>("DailyExpenses")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -844,7 +959,7 @@ namespace ErpFactory.Api.Migrations
                     b.Property<DateTime>("OperationDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasDefaultValueSql("sysutcdatetime()");
 
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
@@ -855,6 +970,9 @@ namespace ErpFactory.Api.Migrations
                     b.Property<decimal>("SupervisorLaborCost")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("SiteOperationId");
 

@@ -4,7 +4,8 @@
 
 - [Workflow](docs/workflow.md)
 - [ERD](docs/erd.md)
-- [Database](database/schema.sql)
+- [Views](docs/Views.sql)
+- [Api](docs/api-design.md)
 
 ---
 
@@ -38,5 +39,25 @@ src/ErpFactory.Api/appsettings.json
 Default API base URL:
 
 ```text
-/api/v1
+api/
 ```
+
+## Database Setup
+
+Update the connection string in `src/ErpFactory.Api/appsettings.json` before running any commands.
+
+**1. Create the Migration**
+
+```powershell
+dotnet ef migrations add InitialCreate --project .\src\ErpFactory.Api\ErpFactory.Api.csproj
+```
+
+**2. Apply the Migration**
+
+```powershell
+dotnet ef database update --project .\src\ErpFactory.Api\ErpFactory.Api.csproj
+```
+
+**3. Create the Views**
+
+Open `docs/Views.sql` and run it manually against your SQL Server database using SSMS or Azure Data Studio.
