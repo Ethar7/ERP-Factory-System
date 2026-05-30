@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Models;
 
-public sealed class DeliveryOrder
+public sealed class DeliveryOrder : BaseEntity
 {
     public int DeliveryOrderId { get; set; }
     public int ProjectId { get; set; }

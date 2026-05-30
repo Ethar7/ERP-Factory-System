@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Models;
 
-
-public sealed class Mold
+public sealed class Mold : BaseEntity
 {
     public int MoldId { get; set; }
     public string MoldName { get; set; } = string.Empty;

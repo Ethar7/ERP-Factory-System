@@ -11,15 +11,11 @@ public sealed class JwtTokenService : IJwtTokenService
 {
     private readonly JwtOptions _options;
 
-    public JwtTokenService(IOptions<JwtOptions> options)
-    {
-        _options = options.Value;
-    }
+    public JwtTokenService(IOptions<JwtOptions> options) => _options = options.Value;
 
     public JwtTokenResult CreateToken(User user)
     {
         var expiresAtUtc = DateTime.UtcNow.AddMinutes(_options.ExpirationMinutes);
-        var roleName = user.Role?.Name ?? string.Empty;
 
         var claims = new List<Claim>
         {
@@ -28,30 +24,24 @@ public sealed class JwtTokenService : IJwtTokenService
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new(ClaimTypes.Name, user.Username),
-            new(ClaimTypes.Role, roleName)
+            new(ClaimTypes.Role, user.Role?.Name ?? string.Empty)
         };
 
-        if (!string.IsNullOrWhiteSpace(user.Email))
-        {
-            claims.Add(new Claim(ClaimTypes.Email, user.Email));
-        }
+        if (!string.IsNullOrWhiteSpace(user.Email)) claims.Add(new(ClaimTypes.Email, user.Email));
+        if (!string.IsNullOrWhiteSpace(user.FullName)) claims.Add(new("full_name", user.FullName));
 
-        if (!string.IsNullOrWhiteSpace(user.FullName))
-        {
-            claims.Add(new Claim("full_name", user.FullName));
-        }
+        var credentials = new SigningCredentials(
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key)),
+            SecurityAlgorithms.HmacSha256);
 
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
-        var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
         var token = new JwtSecurityToken(
-            issuer: _options.Issuer,
-            audience: _options.Audience,
-            claims: claims,
-            expires: expiresAtUtc,
-            signingCredentials: credentials);
+            _options.Issuer,
+            _options.Audience,
+            claims,
+            null,
+            expiresAtUtc,
+            credentials);
 
-        return new JwtTokenResult(
-            new JwtSecurityTokenHandler().WriteToken(token),
-            expiresAtUtc);
+        return new JwtTokenResult(new JwtSecurityTokenHandler().WriteToken(token), expiresAtUtc);
     }
 }

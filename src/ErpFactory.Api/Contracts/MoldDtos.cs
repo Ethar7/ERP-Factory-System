@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Contracts;
 
 public sealed class CreateMoldRequest
@@ -14,10 +11,4 @@ public sealed class CreateMoldRequest
 public sealed class UpdateMoldStatusRequest
 {
     public string MoldStatus { get; set; } = string.Empty;
-}
-
-public sealed class AllocateMoldRequest
-{
-    public int MoldId { get; set; }
-    public int AllocQuantity { get; set; }
 }

@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -42,7 +42,7 @@ public sealed class MoldsController(ErpFactoryDbContext db) : ApiControllerBase
     [HttpPut("{moldId:int}")]
     public async Task<ActionResult<ApiResponse<Mold>>> Update(int moldId, CreateMoldRequest request, CancellationToken ct)
     {
-        var mold = await db.Molds.FindAsync([moldId], ct);
+        var mold = await db.Molds.FirstOrDefaultAsync(x => x.MoldId == moldId, ct);
         if (mold is null)
         {
             return NotFoundResponse<Mold>();
@@ -60,7 +60,7 @@ public sealed class MoldsController(ErpFactoryDbContext db) : ApiControllerBase
     [HttpPatch("{moldId:int}/status")]
     public async Task<ActionResult<ApiResponse<Mold>>> UpdateStatus(int moldId, UpdateMoldStatusRequest request, CancellationToken ct)
     {
-        var mold = await db.Molds.FindAsync([moldId], ct);
+        var mold = await db.Molds.FirstOrDefaultAsync(x => x.MoldId == moldId, ct);
         if (mold is null)
         {
             return NotFoundResponse<Mold>();
@@ -74,23 +74,37 @@ public sealed class MoldsController(ErpFactoryDbContext db) : ApiControllerBase
     [HttpGet("{moldId:int}/usage-history")]
     public async Task<ActionResult<ApiResponse<IReadOnlyCollection<object>>>> UsageHistory(int moldId, CancellationToken ct)
     {
-        var rows = await db.ProductionOrders.AsNoTracking().Where(x => x.MoldId == moldId)
+        var rows = await db.ProductionOrders.AsNoTracking()
+            .Where(x => x.MoldId == moldId)
             .Select(x => new { x.ProductionOrderId, x.BatchNumber, x.OrderDate, x.TargetQuantity, x.ProducedQuantity })
             .OrderByDescending(x => x.OrderDate)
-            .Cast<object>()
             .ToListAsync(ct);
-        return OkCollection(rows);
+
+        return OkCollection<object>(rows);
     }
 
     [HttpGet("{moldId:int}/cost-analysis")]
     public async Task<ActionResult<ApiResponse<object>>> CostAnalysis(int moldId, CancellationToken ct)
     {
         var mold = await db.Molds.AsNoTracking().FirstOrDefaultAsync(x => x.MoldId == moldId, ct);
-        if (mold is null) return NotFoundResponse<object>();
+        if (mold is null)
+        {
+            return NotFoundResponse<object>();
+        }
 
         var usage = await db.ProductionOrders.AsNoTracking().Where(x => x.MoldId == moldId).ToListAsync(ct);
         var uses = usage.Count;
         var totalDepreciation = usage.Sum(x => x.MoldDepreciationCost);
-        return OkResponse<object>(new { mold.MoldId, mold.MoldName, Uses = uses, TotalDepreciation = totalDepreciation, CostToBuild = mold.CostToBuild });
+
+        var analysisResult = new
+        {
+            mold.MoldId,
+            mold.MoldName,
+            Uses = uses,
+            TotalDepreciation = totalDepreciation,
+            mold.CostToBuild
+        };
+
+        return OkResponse<object>(analysisResult);
     }
 }

@@ -1,284 +1,213 @@
-# ERP Factory System API Design
+# 📘 API Documentation
 
-## Overview
+> Complete reference for all available API endpoints, organized by module.
 
-This document defines the REST API design for the ERP Factory System, optimized to eliminate redundancy and follow a clean, maintainable architecture. The APIs are grouped by module and cover project-based manufacturing from BOQ through molds, mix designs, production, inventory, delivery, site operations, accounting, and reports.
+---
 
-Base URL:
+## 📑 Table of Contents
 
-```text
-/api/v1
-```
+- [🔐 Auth](#-auth)
+- [👥 Customers](#-customers)
+- [📂 Projects](#-projects)
+- [📦 Project Items](#-project-items)
+- [🏭 Production Orders](#-production-orders)
+- [🎨 Mix Designs](#-mix-designs)
+- [🧱 Molds](#-molds)
+- [🚚 Delivery Orders](#-delivery-orders)
+- [🏗️ Site Operations](#️-site-operations)
+- [📋 Inventory](#-inventory)
+- [💰 Accounting](#-accounting)
+- [📊 Reports](#-reports)
+- [👤 Admin Users](#-admin-users)
 
-Common success response:
+---
 
-```json
-{
-  "success": true,
-  "message": "Operation completed successfully",
-  "data": {}
-}
-```
-
-Common error response:
-
-```json
-{
-  "success": false,
-  "message": "Validation error",
-  "errors": []
-}
-```
-
-## 1. Projects and BOQ
+## 🔐 Auth
 
 | Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/projects` | List projects with optional filters |
-| `POST` | `/projects` | Create a project; supports BOQ items in the same request |
-| `GET` | `/projects/{projectId}` | Get project details with BOQ |
-| `PUT` | `/projects/{projectId}` | Update project basic data |
-| `PATCH` | `/projects/{projectId}/status` | Update project status |
-| `GET` | `/projects/{projectId}/items` | List project BOQ items |
-| `POST` | `/projects/{projectId}/items` | Add BOQ items to project |
-| `PUT` | `/project-items/{projectItemId}` | Update BOQ item |
-| `DELETE` | `/project-items/{projectItemId}` | Delete BOQ item |
+|--------|----------|-------------|
+| `POST` | `/api/Auth/register` | Register a new user |
+| `POST` | `/api/Auth/login` | Login and obtain token |
 
-Example create project request:
+---
 
-```json
-{
-  "projectName": "New Administrative Building",
-  "customerId": 1,
-  "startDate": "2026-06-01",
-  "totalEstimatedBudget": 2500000,
-  "items": [
-    {
-      "itemCode": "SEC-001",
-      "itemName": "Concrete Facade Panel",
-      "unit": "m2",
-      "requiredQuantity": 500,
-      "estimatedUnitPrice": 1200,
-      "taxRate": 14
-    }
-  ]
-}
-```
-
-## 2. Customers
+## 👥 Customers
 
 | Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/customers` | List customers |
-| `POST` | `/customers` | Create customer and optionally link to chart of accounts |
-| `GET` | `/customers/{customerId}` | Get customer details |
-| `PUT` | `/customers/{customerId}` | Update customer |
+|--------|----------|-------------|
+| `GET` | `/api/Customers` | Get all customers |
+| `POST` | `/api/Customers` | Create a new customer |
+| `GET` | `/api/Customers/{customerId}` | Get customer by ID |
+| `PUT` | `/api/Customers/{customerId}` | Update customer by ID |
+| `GET` | `/api/Customers/{customerId}/projects` | Get all projects for a customer |
 
-## 3. Molds Management
+---
 
-Molds are tracked as physical cost-incurring assets. Mold usage and depreciation calculations are applied dynamically inside production orders without manual booking intermediate tables.
-
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/molds` | List molds and lifespan usage |
-| `POST` | `/molds` | Create mold with build cost and expected lifespan |
-| `GET` | `/molds/{moldId}` | Get mold details |
-| `PUT` | `/molds/{moldId}` | Update mold data |
-| `PATCH` | `/molds/{moldId}/status` | Update mold status |
-
-## 4. Mix Designs
-
-Mix designs represent the concrete recipes. Ingredients are managed as a nested collection directly inside the Mix Design payload to simplify UI operations.
+## 📂 Projects
 
 | Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/mix-designs` | List approved mix designs |
-| `POST` | `/mix-designs` | Create mix design with nested ingredients list |
-| `GET` | `/mix-designs/{mixDesignId}` | Get mix design with ingredients list |
-| `PUT` | `/mix-designs/{mixDesignId}` | Update mix design basic data and its ingredients |
-| `GET` | `/mix-designs/{mixDesignId}/cost-analysis` | Get calculated material cost of a mix |
+|--------|----------|-------------|
+| `GET` | `/api/Projects` | Get all projects |
+| `POST` | `/api/Projects` | Create a new project |
+| `GET` | `/api/Projects/{projectId}` | Get project by ID |
+| `PUT` | `/api/Projects/{projectId}` | Update project by ID |
+| `PATCH` | `/api/Projects/{projectId}/status` | Update project status |
+| `GET` | `/api/Projects/{projectId}/items` | Get all items in a project |
+| `POST` | `/api/Projects/{projectId}/items` | Add item to a project |
+| `GET` | `/api/Projects/{projectId}/summary` | Get project summary |
+| `GET` | `/api/Projects/{projectId}/dashboard` | Get project dashboard data |
 
-Example create mix design request:
+---
 
-```json
-{
-  "mixName": "High Strength Mix",
-  "targetStrength": "C40",
-  "standardCostPerUnit": 950,
-  "ingredients": [
-    {
-      "rawMaterialId": 10,
-      "standardQtyPerUnit": 2.5
-    }
-  ]
-}
-```
-
-## 5. Production Orders and Quality Control
-
-When completing production, the system automatically decrements inventory and posts costs to the corresponding project cost center.
+## 📦 Project Items
 
 | Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/production-orders` | List production orders |
-| `POST` | `/production-orders` | Create production batch linked to project, item, mix, and mold |
-| `GET` | `/production-orders/{productionOrderId}` | Get production order details with wastage |
-| `PUT` | `/production-orders/{productionOrderId}` | Update production order while still in setup stage |
-| `PATCH` | `/production-orders/{productionOrderId}/status` | Update production stage |
-| `POST` | `/production-orders/{productionOrderId}/material-consumption` | Record actual raw material consumption |
-| `GET` | `/production-orders/{productionOrderId}/material-consumption` | List actual vs standard material consumption |
-| `PATCH` | `/production-orders/{productionOrderId}/quality-check` | Record produced, good, and rejected quantities |
-| `POST` | `/production-orders/{productionOrderId}/inventory-posting` | Deduct raw materials from inventory and post transactions |
-| `POST` | `/production-orders/{productionOrderId}/post-accounting` | Mark accounting flags on order after automated cost posting |
-| `GET` | `/production-orders/{productionOrderId}/progress` | Get batch production progress percentage |
+|--------|----------|-------------|
+| `PUT` | `/api/ProjectItems/{projectItemId}` | Update a project item |
+| `DELETE` | `/api/ProjectItems/{projectItemId}` | Delete a project item |
 
-Example create production order request:
+---
 
-```json
-{
-  "projectId": 1,
-  "projectItemId": 4,
-  "mixDesignId": 2,
-  "moldId": 3,
-  "batchNumber": "B-2026-0001",
-  "targetQuantity": 100,
-  "laborCost": 5000,
-  "moldDepreciationCost": 1200
-}
-```
-
-## 6. Inventory Transactions
+## 🏭 Production Orders
 
 | Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/inventory/items` | List inventory items with current stock and average cost |
-| `POST` | `/inventory/items` | Create inventory item |
-| `GET` | `/inventory/items/{itemId}` | Get inventory item details |
-| `PUT` | `/inventory/items/{itemId}` | Update inventory item |
-| `GET` | `/inventory/transactions` | List inventory audit trail; filterable by `projectId` |
-| `POST` | `/inventory/transactions` | Create manual inventory movement |
+|--------|----------|-------------|
+| `GET` | `/api/ProductionOrders` | Get all production orders |
+| `POST` | `/api/ProductionOrders` | Create a new production order |
+| `GET` | `/api/ProductionOrders/{productionOrderId}` | Get production order by ID |
+| `PUT` | `/api/ProductionOrders/{productionOrderId}` | Update production order |
+| `PATCH` | `/api/ProductionOrders/{productionOrderId}/status` | Update production order status |
+| `PATCH` | `/api/ProductionOrders/{productionOrderId}/quality-check` | Submit quality check result |
+| `GET` | `/api/ProductionOrders/{productionOrderId}/material-consumption` | Get material consumption |
+| `POST` | `/api/ProductionOrders/{productionOrderId}/material-consumption` | Log material consumption |
+| `POST` | `/api/ProductionOrders/{productionOrderId}/post-accounting` | Post accounting entries |
+| `POST` | `/api/ProductionOrders/{productionOrderId}/inventory-posting` | Post inventory update |
+| `GET` | `/api/ProductionOrders/{productionOrderId}/progress` | Get production progress |
+| `GET` | `/api/ProductionOrders/in-progress` | Get all in-progress orders |
+| `GET` | `/api/ProductionOrders/completed` | Get all completed orders |
 
-Example inventory transaction request:
+---
 
-```json
-{
-  "itemId": 10,
-  "projectId": 1,
-  "transactionType": "ProductionIssue",
-  "quantity": 150.75,
-  "unitCost": 12.5,
-  "referenceType": "ProductionOrder",
-  "referenceId": 7,
-  "notes": "Raw material issued for production batch"
-}
-```
-
-## 7. Delivery Orders
+## 🎨 Mix Designs
 
 | Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/delivery-orders` | List delivery orders; filterable by `projectId` |
-| `POST` | `/delivery-orders` | Create delivery order with driver, vehicle, and ticket numbers |
-| `GET` | `/delivery-orders/{deliveryOrderId}` | Get delivery order details and shipped quantities |
-| `PUT` | `/delivery-orders/{deliveryOrderId}` | Update delivery order data |
-| `PATCH` | `/delivery-orders/{deliveryOrderId}/status` | Update delivery status |
-| `POST` | `/delivery-orders/{deliveryOrderId}/items` | Add products to delivery order |
-| `PATCH` | `/delivery-orders/{deliveryOrderId}/items/{deliveryItemId}/receive-confirmation` | Confirm received quantity and damaged quantity at site level |
-| `GET` | `/delivery-orders/{deliveryOrderId}/tracking` | Get delivery status and item metrics |
+|--------|----------|-------------|
+| `GET` | `/api/MixDesigns` | Get all mix designs |
+| `POST` | `/api/MixDesigns` | Create a new mix design |
+| `GET` | `/api/MixDesigns/{mixDesignId}` | Get mix design by ID |
+| `PUT` | `/api/MixDesigns/{mixDesignId}` | Update mix design |
+| `GET` | `/api/MixDesigns/{mixDesignId}/ingredients` | Get mix design ingredients |
+| `POST` | `/api/MixDesigns/{mixDesignId}/ingredients` | Add ingredient to mix design |
+| `GET` | `/api/MixDesigns/{mixDesignId}/cost-analysis` | Get cost analysis for mix design |
 
-Example receive confirmation request:
+---
 
-```json
-{
-  "quantityReceived": 90,
-  "quantityDamagedInTransit": 2
-}
-```
-
-## 8. Site Operations
+## 🧱 Molds
 
 | Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/site-operations` | List site installation operations |
-| `POST` | `/site-operations` | Record daily installed quantity, labor, and expenses |
-| `GET` | `/site-operations/{siteOperationId}` | Get site operation details |
-| `PUT` | `/site-operations/{siteOperationId}` | Update site operation |
-| `POST` | `/site-operations/{siteOperationId}/consumption` | Record accessories or finishing materials used on site |
-| `GET` | `/site-operations/{siteOperationId}/consumption` | List site material consumption |
+|--------|----------|-------------|
+| `GET` | `/api/Molds` | Get all molds |
+| `POST` | `/api/Molds` | Create a new mold |
+| `GET` | `/api/Molds/{moldId}` | Get mold by ID |
+| `PUT` | `/api/Molds/{moldId}` | Update mold |
+| `PATCH` | `/api/Molds/{moldId}/status` | Update mold status |
+| `GET` | `/api/Molds/{moldId}/usage-history` | Get mold usage history |
+| `GET` | `/api/Molds/{moldId}/cost-analysis` | Get mold cost analysis |
 
-Example site operation request:
+---
 
-```json
-{
-  "projectId": 1,
-  "projectItemId": 4,
-  "installedQuantity": 25,
-  "supervisorLaborCost": 2000,
-  "dailyExpenses": 750
-}
-```
-
-## 9. Accounting (Automated Cost Centers)
-
-Financial records and project cost centers are automatically calculated based on production and material consumption transactions.
+## 🚚 Delivery Orders
 
 | Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/accounting/chart-of-accounts` | List chart of accounts |
-| `POST` | `/accounting/chart-of-accounts` | Create account |
-| `GET` | `/accounting/journal-entries` | List automatically posted cost entries |
-| `GET` | `/accounting/journal-entries/{journalEntryId}` | Get specific journal entry |
+|--------|----------|-------------|
+| `GET` | `/api/DeliveryOrders` | Get all delivery orders |
+| `POST` | `/api/DeliveryOrders` | Create a new delivery order |
+| `GET` | `/api/DeliveryOrders/{deliveryOrderId}` | Get delivery order by ID |
+| `PUT` | `/api/DeliveryOrders/{deliveryOrderId}` | Update delivery order |
+| `PATCH` | `/api/DeliveryOrders/{deliveryOrderId}/status` | Update delivery order status |
+| `POST` | `/api/DeliveryOrders/{deliveryOrderId}/items` | Add items to delivery order |
+| `GET` | `/api/DeliveryOrders/{deliveryOrderId}/tracking` | Get delivery tracking info |
+| `PATCH` | `/api/DeliveryOrders/{deliveryOrderId}/items/{deliveryItemId}/receive-confirmation` | Confirm receipt of a delivery item |
 
-## 10. Reports
+---
 
-Reports controller aggregates financial, production, and site parameters to provide high-level summaries for the management dashboard.
+## 🏗️ Site Operations
 
 | Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/reports/project-cost-summary` | List project cost summary for all projects |
-| `GET` | `/reports/projects/{projectId}/cost-summary` | Project cost summary (Budget, Actuals) |
-| `GET` | `/reports/projects/{projectId}/profitability` | Project profitability report |
-| `GET` | `/reports/projects/{projectId}/production-progress` | Produced, rejected, and remaining quantities |
-| `GET` | `/reports/projects/{projectId}/delivery-progress` | Delivered, damaged, and remaining quantities |
-| `GET` | `/reports/projects/{projectId}/installation-progress` | Installed and remaining quantities |
-| `GET` | `/reports/projects/{projectId}/material-variance` | Actual vs theoretical material consumption and loss |
-| `GET` | `/reports/projects/{projectId}/mold-cost` | Mold usage count and total depreciation cost allocation |
-| `GET` | `/reports/journal-entry-balance` | List journal entry balances |
+|--------|----------|-------------|
+| `GET` | `/api/SiteOperations` | Get all site operations |
+| `POST` | `/api/SiteOperations` | Create a new site operation |
+| `GET` | `/api/SiteOperations/{siteOperationId}` | Get site operation by ID |
+| `PUT` | `/api/SiteOperations/{siteOperationId}` | Update site operation |
+| `GET` | `/api/SiteOperations/{siteOperationId}/consumption` | Get resource consumption |
+| `POST` | `/api/SiteOperations/{siteOperationId}/consumption` | Log resource consumption |
+| `GET` | `/api/SiteOperations/project/{projectId}/cost-summary` | Get project cost summary for site ops |
 
-Example project profitability response:
+---
 
-```json
-{
-  "success": true,
-  "data": {
-    "projectId": 1,
-    "projectName": "New Administrative Building",
-    "estimatedBudget": 2500000,
-    "productionDirectCost": 850000,
-    "siteDirectCost": 180000,
-    "totalDirectCost": 1030000,
-    "estimatedProfit": 1470000
-  }
-}
-```
+## 📋 Inventory
 
-## 11. Suggested User Roles
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/Inventory/items` | Get all inventory items |
+| `POST` | `/api/Inventory/items` | Create a new inventory item |
+| `GET` | `/api/Inventory/items/{itemId}` | Get inventory item by ID |
+| `PUT` | `/api/Inventory/items/{itemId}` | Update inventory item |
+| `GET` | `/api/Inventory/transactions` | Get all inventory transactions |
+| `POST` | `/api/Inventory/transactions` | Create an inventory transaction |
+| `GET` | `/api/Inventory/items/{itemId}/balance` | Get current balance for an item |
+| `GET` | `/api/Inventory/items/{itemId}/transactions` | Get transaction history for an item |
+| `GET` | `/api/Inventory/low-stock` | Get all low-stock items |
 
-| Role | Main Access |
-| --- | --- |
-| `Admin` | Full system access |
-| `ProjectManager` | Projects, BOQ, molds, production, delivery, and reports |
-| `InventoryUser` | Inventory items and inventory transactions |
-| `Accountant` | Chart of accounts, journal entries, and cost reports |
+---
 
-## 12. Main Business Rules
+## 💰 Accounting
 
-- A project must be approved before creating production orders.
-- Production orders must be linked to a project item, mix design, and mold.
-- Molds update lifespan usage automatically on production posting.
-- Actual material consumption creates inventory transactions automatically.
-- Finished production quantities are received into inventory automatically.
-- Delivery quantities should not exceed available finished quantities.
-- Site installation quantities should not exceed delivered quantities.
-- Site material consumption creates inventory transactions.
-- Journal entry balances are calculated automatically by the backend system.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/Accounting/chart-of-accounts` | Get chart of accounts |
+| `POST` | `/api/Accounting/chart-of-accounts` | Create a new account |
+| `GET` | `/api/Accounting/journal-entries` | Get all journal entries |
+| `POST` | `/api/Accounting/journal-entries` | Create a journal entry |
+| `GET` | `/api/Accounting/journal-entries/{journalEntryId}` | Get journal entry by ID |
+
+---
+
+## 📊 Reports
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/Reports/project-cost-summary` | Get cost summary across all projects |
+| `GET` | `/api/Reports/projects/{projectId}/cost-summary` | Get cost summary for a project |
+| `GET` | `/api/Reports/projects/{projectId}/profitability` | Get profitability report for a project |
+| `GET` | `/api/Reports/projects/{projectId}/production-progress` | Get production progress report |
+| `GET` | `/api/Reports/projects/{projectId}/delivery-progress` | Get delivery progress report |
+| `GET` | `/api/Reports/projects/{projectId}/installation-progress` | Get installation progress report |
+| `GET` | `/api/Reports/projects/{projectId}/material-variance` | Get material variance report |
+| `GET` | `/api/Reports/projects/{projectId}/mold-cost` | Get mold cost report |
+| `GET` | `/api/Reports/journal-entry-balance` | Get journal entry balance report |
+
+---
+
+## 👤 Admin Users
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/admin/users` | Get all users |
+| `PUT` | `/api/admin/users/{userId}/role` | Update user role |
+
+---
+
+<div align="center">
+
+### HTTP Methods Legend
+
+| Badge | Method | Usage |
+|-------|--------|-------|
+| `GET` | GET | Retrieve data |
+| `POST` | POST | Create new resource |
+| `PUT` | PUT | Replace/update resource |
+| `PATCH` | PATCH | Partial update |
+| `DELETE` | DELETE | Delete resource |
+
+</div>

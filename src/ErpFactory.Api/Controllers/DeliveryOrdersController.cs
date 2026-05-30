@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -50,15 +50,16 @@ public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiContro
         }
         catch (DbUpdateException ex)
         {
-            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+            return FailResponse<IdResponse>("Database update failed: " + ex.Message);
         }
+
         return CreatedResponse(nameof(GetDeliveryOrderById), new { deliveryOrderId = order.DeliveryOrderId }, new IdResponse(order.DeliveryOrderId));
     }
 
     [HttpPut("{deliveryOrderId:int}")]
     public async Task<ActionResult<ApiResponse<DeliveryOrder>>> Update(int deliveryOrderId, CreateDeliveryOrderRequest request, CancellationToken ct)
     {
-        var order = await db.DeliveryOrders.FindAsync(new object[] { deliveryOrderId }, ct);
+        var order = await db.DeliveryOrders.FirstOrDefaultAsync(x => x.DeliveryOrderId == deliveryOrderId, ct);
         if (order is null)
         {
             return NotFoundResponse<DeliveryOrder>();
@@ -69,6 +70,7 @@ public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiContro
         order.VehicleNumber = request.VehicleNumber;
         order.LoadingTicketNumber = request.LoadingTicketNumber;
         order.DeliveryTicketNumber = request.DeliveryTicketNumber;
+
         await db.SaveChangesAsync(ct);
         return OkResponse(order);
     }
@@ -76,7 +78,7 @@ public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiContro
     [HttpPatch("{deliveryOrderId:int}/status")]
     public async Task<ActionResult<ApiResponse<DeliveryOrder>>> UpdateStatus(int deliveryOrderId, UpdateDeliveryStatusRequest request, CancellationToken ct)
     {
-        var order = await db.DeliveryOrders.FindAsync(new object[] { deliveryOrderId }, ct);
+        var order = await db.DeliveryOrders.FirstOrDefaultAsync(x => x.DeliveryOrderId == deliveryOrderId, ct);
         if (order is null)
         {
             return NotFoundResponse<DeliveryOrder>();
@@ -110,7 +112,7 @@ public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiContro
         var order = await db.DeliveryOrders.AsNoTracking().Include(x => x.Items).FirstOrDefaultAsync(x => x.DeliveryOrderId == deliveryOrderId, ct);
         if (order is null) return NotFoundResponse<object>();
 
-        return OkResponse<object>(new
+        var trackingData = new
         {
             order.DeliveryOrderId,
             order.DeliveryTicketNumber,
@@ -119,15 +121,13 @@ public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiContro
             order.VehicleNumber,
             order.DeliveryStatus,
             Items = order.Items.Select(i => new { i.DeliveryItemId, i.ProjectItemId, i.QuantityShipped, i.QuantityReceived, i.QuantityDamagedInTransit })
-        });
+        };
+
+        return OkResponse<object>(trackingData);
     }
 
     [HttpPatch("{deliveryOrderId:int}/items/{deliveryItemId:int}/receive-confirmation")]
-    public async Task<ActionResult<ApiResponse<DeliveryItem>>> ConfirmReceive(
-        int deliveryOrderId,
-        int deliveryItemId,
-        ReceiveDeliveryItemRequest request,
-        CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<DeliveryItem>>> ConfirmReceive(int deliveryOrderId, int deliveryItemId, ReceiveDeliveryItemRequest request, CancellationToken ct)
     {
         var item = await db.DeliveryItems.FirstOrDefaultAsync(x => x.DeliveryOrderId == deliveryOrderId && x.DeliveryItemId == deliveryItemId, ct);
         if (item is null)
@@ -137,6 +137,7 @@ public sealed class DeliveryOrdersController(ErpFactoryDbContext db) : ApiContro
 
         item.QuantityReceived = request.QuantityReceived;
         item.QuantityDamagedInTransit = request.QuantityDamagedInTransit;
+
         await db.SaveChangesAsync(ct);
         return OkResponse(item);
     }

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Contracts;
 
 public sealed class CreateInventoryItemRequest

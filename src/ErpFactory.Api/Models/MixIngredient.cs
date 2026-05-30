@@ -1,6 +1,6 @@
 namespace ErpFactory.Api.Models;
 
-public sealed class MixIngredient
+public sealed class MixIngredient : BaseEntity
 {
     public int IngredientId { get; set; }
     public int MixDesignId { get; set; }

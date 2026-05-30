@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -59,15 +59,16 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
         }
         catch (DbUpdateException ex)
         {
-            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+            return FailResponse<IdResponse>("Database update failed: " + ex.Message);
         }
+
         return CreatedResponse(nameof(GetProductionOrderById), new { productionOrderId = order.ProductionOrderId }, new IdResponse(order.ProductionOrderId));
     }
 
     [HttpPut("{productionOrderId:int}")]
     public async Task<ActionResult<ApiResponse<ProductionOrder>>> Update(int productionOrderId, CreateProductionOrderRequest request, CancellationToken ct)
     {
-        var order = await db.ProductionOrders.FindAsync(new object[] { productionOrderId }, ct);
+        var order = await db.ProductionOrders.FirstOrDefaultAsync(x => x.ProductionOrderId == productionOrderId, ct);
         if (order is null)
         {
             return NotFoundResponse<ProductionOrder>();
@@ -89,7 +90,7 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
     [HttpPatch("{productionOrderId:int}/status")]
     public async Task<ActionResult<ApiResponse<ProductionOrder>>> UpdateStatus(int productionOrderId, UpdateProductionStatusRequest request, CancellationToken ct)
     {
-        var order = await db.ProductionOrders.FindAsync(new object[] { productionOrderId }, ct);
+        var order = await db.ProductionOrders.FirstOrDefaultAsync(x => x.ProductionOrderId == productionOrderId, ct);
         if (order is null)
         {
             return NotFoundResponse<ProductionOrder>();
@@ -103,7 +104,7 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
     [HttpPatch("{productionOrderId:int}/quality-check")]
     public async Task<ActionResult<ApiResponse<ProductionOrder>>> RecordQualityCheck(int productionOrderId, RecordQualityCheckRequest request, CancellationToken ct)
     {
-        var order = await db.ProductionOrders.FindAsync(new object[] { productionOrderId }, ct);
+        var order = await db.ProductionOrders.FirstOrDefaultAsync(x => x.ProductionOrderId == productionOrderId, ct);
         if (order is null)
         {
             return NotFoundResponse<ProductionOrder>();
@@ -143,7 +144,7 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
     [HttpPost("{productionOrderId:int}/post-accounting")]
     public async Task<ActionResult<ApiResponse<ProductionOrder>>> MarkAccountingPosted(int productionOrderId, CancellationToken ct)
     {
-        var order = await db.ProductionOrders.FindAsync([productionOrderId], ct);
+        var order = await db.ProductionOrders.FirstOrDefaultAsync(x => x.ProductionOrderId == productionOrderId, ct);
         if (order is null)
         {
             return NotFoundResponse<ProductionOrder>();
@@ -158,9 +159,11 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
     public async Task<ActionResult<ApiResponse<object>>> InventoryPosting(int productionOrderId, CancellationToken ct)
     {
         var order = await db.ProductionOrders.Include(x => x.MaterialConsumption).FirstOrDefaultAsync(x => x.ProductionOrderId == productionOrderId, ct);
-        if (order is null) return NotFoundResponse<object>();
+        if (order is null)
+        {
+            return NotFoundResponse<object>();
+        }
 
-        // load related inventory items
         var materialIds = order.MaterialConsumption.Select(x => x.MaterialId).Distinct().ToList();
         var materials = await db.InventoryItems.Where(x => materialIds.Contains(x.ItemId)).ToListAsync(ct);
 
@@ -172,7 +175,6 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
                 var item = materials.FirstOrDefault(x => x.ItemId == mc.MaterialId);
                 if (item is null) continue;
 
-                // create an inventory transaction representing consumption
                 var invTx = new InventoryTransaction
                 {
                     ItemId = item.ItemId,
@@ -180,14 +182,13 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
                     TransactionType = "ProductionConsumption",
                     Quantity = mc.ActualQtyConsumed,
                     UnitCost = item.AverageCost,
-                    TransactionDate = DateTime.Now,
+                    TransactionDate = DateTime.UtcNow,
                     ReferenceType = "ProductionOrder",
                     ReferenceId = productionOrderId,
                     Notes = "Posted from production order inventory posting"
                 };
                 db.InventoryTransactions.Add(invTx);
 
-                // decrement current stock
                 item.CurrentStock -= mc.ActualQtyConsumed;
                 if (item.CurrentStock < 0) item.CurrentStock = 0;
             }
@@ -199,7 +200,7 @@ public sealed class ProductionOrdersController(ErpFactoryDbContext db) : ApiCont
         catch (DbUpdateException ex)
         {
             await tx.RollbackAsync(ct);
-            return BadRequest(ApiResponse<object>.Fail("Inventory posting failed: " + ex.Message));
+            return FailResponse<object>("Inventory posting failed: " + ex.Message);
         }
     }
 

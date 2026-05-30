@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Contracts;
 
 public sealed class CreateProjectItemRequest
@@ -19,8 +16,7 @@ public sealed class CreateProjectRequest
     public int CustomerId { get; set; }
     public DateTime? StartDate { get; set; }
     public decimal TotalEstimatedBudget { get; set; }
-
-    public IReadOnlyCollection<CreateProjectItemRequest>? Items { get; set; }
+    public IReadOnlyCollection<CreateProjectItemRequest> Items { get; set; } = Array.Empty<CreateProjectItemRequest>();
 }
 
 public sealed class UpdateProjectStatusRequest

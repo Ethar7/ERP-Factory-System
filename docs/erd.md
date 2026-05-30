@@ -2,7 +2,19 @@
 
 ```mermaid
 erDiagram
-
+ROLES {
+        int RoleId PK
+        string Name
+    }
+    USERS {
+        int UserId PK
+        string Username
+        string PasswordHash
+        string FullName
+        string Email
+        bool IsActive
+        int RoleId FK
+    }
 ChartOfAccounts {
     int AccountID PK
     string AccountCode
@@ -206,6 +218,10 @@ DeliveryOrders ||--o{ DeliveryItems : delivery_lines
 SiteOperations ||--o{ SiteMaterialConsumption : material_usage
 
 JournalEntries ||--o{ JournalEntryLines : entry_lines
+ROLES ||--o{ USERS : "has"
+USERS ||--o{ PROJECTS : "creates"
+USERS ||--o{ PRODUCTIONORDERS : "manages"
+USERS ||--o{ JOURNALENTRIES : "posts"
 ```
 
 ## Reporting Views

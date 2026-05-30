@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Models;
 
-public sealed class JournalEntry
+public sealed class JournalEntry : BaseEntity
 {
     public int JournalEntryId { get; set; }
     public string ReferenceType { get; set; } = string.Empty;

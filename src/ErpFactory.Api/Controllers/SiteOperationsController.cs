@@ -1,10 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ErpFactory.Api.DTOS;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -51,15 +50,16 @@ public sealed class SiteOperationsController(ErpFactoryDbContext db) : ApiContro
         }
         catch (DbUpdateException ex)
         {
-            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+            return FailResponse<IdResponse>("Database update failed: " + ex.Message);
         }
+
         return CreatedResponse(nameof(GetSiteOperationById), new { siteOperationId = operation.SiteOperationId }, new IdResponse(operation.SiteOperationId));
     }
 
     [HttpPut("{siteOperationId:int}")]
     public async Task<ActionResult<ApiResponse<SiteOperation>>> Update(int siteOperationId, CreateSiteOperationRequest request, CancellationToken ct)
     {
-        var operation = await db.SiteOperations.FindAsync(new object[] { siteOperationId }, ct);
+        var operation = await db.SiteOperations.FirstOrDefaultAsync(x => x.SiteOperationId == siteOperationId, ct);
         if (operation is null)
         {
             return NotFoundResponse<SiteOperation>();
@@ -70,6 +70,7 @@ public sealed class SiteOperationsController(ErpFactoryDbContext db) : ApiContro
         operation.InstalledQuantity = request.InstalledQuantity;
         operation.SupervisorLaborCost = request.SupervisorLaborCost;
         operation.DailyExpenses = request.DailyExpenses;
+
         await db.SaveChangesAsync(ct);
         return OkResponse(operation);
     }

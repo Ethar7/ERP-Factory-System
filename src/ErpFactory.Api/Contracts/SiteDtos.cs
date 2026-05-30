@@ -7,6 +7,7 @@ public sealed class CreateSiteOperationRequest
     public decimal InstalledQuantity { get; set; }
     public decimal SupervisorLaborCost { get; set; }
     public decimal DailyExpenses { get; set; }
+    public List<CreateSiteConsumptionRequest> ConsumedMaterials { get; set; } = new();
 }
 
 public sealed class CreateSiteConsumptionRequest

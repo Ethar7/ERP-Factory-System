@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace ErpFactory.Api.Contracts;
+
+using System.ComponentModel.DataAnnotations;
 
 public sealed class RegisterRequest
 {
@@ -16,8 +16,6 @@ public sealed class RegisterRequest
 
     [EmailAddress]
     public string? Email { get; set; }
-
-    public string? Role { get; set; }
 }
 
 public sealed class LoginRequest

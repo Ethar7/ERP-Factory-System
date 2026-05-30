@@ -1,14 +1,14 @@
-using ErpFactory.Api.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ErpFactory.Api.Contracts;
 
 namespace ErpFactory.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Microsoft.AspNetCore.Authorization.Authorize]
+[Authorize]
 public abstract class ApiControllerBase : ControllerBase
 {
-
     protected ActionResult<ApiResponse<T>> OkResponse<T>(T data, string message = "Operation completed successfully") =>
         Ok(ApiResponse<T>.Ok(data, message));
 
@@ -22,4 +22,7 @@ public abstract class ApiControllerBase : ControllerBase
 
     protected ActionResult<ApiResponse<T>> NotFoundResponse<T>(string message = "Resource was not found") =>
         NotFound(ApiResponse<T>.Fail(message));
+
+    protected ActionResult<ApiResponse<T>> FailResponse<T>(string message, IReadOnlyCollection<string>? errors = null) =>
+        BadRequest(ApiResponse<T>.Fail(message, errors));
 }

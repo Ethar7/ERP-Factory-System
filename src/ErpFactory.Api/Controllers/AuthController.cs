@@ -1,107 +1,78 @@
-using ErpFactory.Api.Contracts;
-using ErpFactory.Api.Models;
-using ErpFactory.Api.Services;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ErpFactory.Api.Contracts;
+using ErpFactory.Api.Data;
+using ErpFactory.Api.Models;
+using ErpFactory.Api.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace ErpFactory.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public sealed class AuthController : ControllerBase
+public sealed class AuthController(
+    ErpFactoryDbContext db,
+    IPasswordHasher hasher,
+    IJwtTokenService jwtTokenService) : ApiControllerBase
 {
-    private readonly Data.ErpFactoryDbContext _db;
-    private readonly IPasswordHasher _hasher;
-    private readonly IJwtTokenService _jwtTokenService;
-
-    public AuthController(
-        Data.ErpFactoryDbContext db,
-        IPasswordHasher hasher,
-        IJwtTokenService jwtTokenService)
-    {
-        _db = db;
-        _hasher = hasher;
-        _jwtTokenService = jwtTokenService;
-    }
-
-    // =========================
-    // REGISTER (NO ROLE INPUT)
-    // =========================
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<IActionResult> Register(RegisterRequest req)
+    public async Task<ActionResult<ApiResponse<AuthUserDto>>> Register(RegisterRequest req, CancellationToken ct)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ApiResponse<object>.Fail("Invalid request"));
-
-        if (await _db.Users.AnyAsync(u => u.Username == req.Username))
-            return BadRequest(ApiResponse<object>.Fail("Username already exists"));
-
-        Role role;
-
-        // لو مفيش أي users -> أول واحد يبقى Admin
-        if (!await _db.Users.AnyAsync())
+        if (await db.Users.AnyAsync(u => u.Username == req.Username, ct))
         {
-            role = await _db.Roles.FirstAsync(r => r.Name == "Admin");
-        }
-        else
-        {
-            // أي users بعد كده -> Viewer
-            role = await _db.Roles.FirstAsync(r => r.Name == "Viewer");
+            return FailResponse<AuthUserDto>("Username already exists");
         }
 
-        if (role == null)
+        string targetRoleName = !await db.Users.AnyAsync(ct) ? "Admin" : "Viewer";
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == targetRoleName, ct);
+
+        if (role is null)
         {
-            role = new Role { Name = "Viewer" };
-            _db.Roles.Add(role);
-            await _db.SaveChangesAsync();
+            role = new Role { Name = targetRoleName };
+            db.Roles.Add(role);
+            await db.SaveChangesAsync(ct);
         }
 
         var user = new User
         {
             Username = req.Username,
-            PasswordHash = _hasher.Hash(req.Password),
+            PasswordHash = hasher.Hash(req.Password),
             FullName = req.FullName ?? string.Empty,
             Email = req.Email ?? string.Empty,
             RoleId = role.RoleId
         };
 
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+        db.Users.Add(user);
+        await db.SaveChangesAsync(ct);
 
-        return Ok(ApiResponse<object>.Ok(
-            new AuthUserDto
-            {
-                UserId = user.UserId,
-                Username = user.Username,
-                FullName = user.FullName,
-                Email = user.Email,
-                Role = role.Name
-            },
-            "User registered successfully"
-        ));
+        var result = new AuthUserDto
+        {
+            UserId = user.UserId,
+            Username = user.Username,
+            FullName = user.FullName,
+            Email = user.Email,
+            Role = role.Name
+        };
+
+        return OkResponse(result, "User registered successfully");
     }
 
-    // =========================
-    // LOGIN
-    // =========================
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login(LoginRequest req)
+    public async Task<ActionResult<ApiResponse<LoginResponse>>> Login(LoginRequest req, CancellationToken ct)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ApiResponse<object>.Fail("Invalid request"));
-
-        var user = await _db.Users
+        var user = await db.Users
             .Include(u => u.Role)
-            .SingleOrDefaultAsync(u => u.Username == req.Username);
+            .SingleOrDefaultAsync(u => u.Username == req.Username, ct);
 
-        if (user == null || !_hasher.Verify(user.PasswordHash, req.Password))
-            return Unauthorized(ApiResponse<object>.Fail("Invalid credentials"));
+        if (user is null || !hasher.Verify(user.PasswordHash, req.Password))
+        {
+            return FailResponse<LoginResponse>("Invalid credentials");
+        }
 
-        var token = _jwtTokenService.CreateToken(user);
+        var token = jwtTokenService.CreateToken(user);
 
         var response = new LoginResponse
         {
@@ -117,6 +88,6 @@ public sealed class AuthController : ControllerBase
             ExpiresAtUtc = token.ExpiresAtUtc
         };
 
-        return Ok(ApiResponse<LoginResponse>.Ok(response, "Login successful"));
+        return OkResponse(response, "Login successful");
     }
 }

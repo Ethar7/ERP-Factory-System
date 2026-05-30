@@ -22,8 +22,8 @@ public sealed class RecordQualityCheckRequest
     public decimal ProducedQuantity { get; set; }
     public decimal GoodQuantity { get; set; }
     public decimal RejectedQuantity { get; set; }
-    public decimal LaborCost { get; set; }
-    public decimal MoldDepreciationCost { get; set; }
+    public decimal LaborCost { get; set; }         
+    public decimal MoldDepreciationCost { get; set; }   
 }
 
 public sealed class RecordProductionConsumptionRequest

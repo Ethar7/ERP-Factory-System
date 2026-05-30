@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -43,7 +43,7 @@ public sealed class InventoryController(ErpFactoryDbContext db) : ApiControllerB
     [HttpPut("items/{itemId:int}")]
     public async Task<ActionResult<ApiResponse<InventoryItem>>> UpdateItem(int itemId, CreateInventoryItemRequest request, CancellationToken ct)
     {
-        var item = await db.InventoryItems.FindAsync([itemId], ct);
+        var item = await db.InventoryItems.FirstOrDefaultAsync(x => x.ItemId == itemId, ct);
         if (item is null)
         {
             return NotFoundResponse<InventoryItem>();

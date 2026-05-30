@@ -1,10 +1,8 @@
-using ErpFactory.Api.Contracts;
-using ErpFactory.Api.Data;
-using ErpFactory.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ErpFactory.Api.DTOS;
-using Microsoft.AspNetCore.Authorization;
+using ErpFactory.Api.Contracts;
+using ErpFactory.Api.Data;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -33,7 +31,7 @@ public sealed class ReportsController(ErpFactoryDbContext db) : ApiControllerBas
             return NotFoundResponse<object>();
         }
 
-        return OkResponse<object>(new
+        var profitabilityResult = new
         {
             summary.ProjectId,
             summary.ProjectName,
@@ -42,7 +40,9 @@ public sealed class ReportsController(ErpFactoryDbContext db) : ApiControllerBas
             summary.SiteDirectCost,
             summary.TotalDirectCost,
             EstimatedProfit = summary.TotalEstimatedBudget - summary.TotalDirectCost
-        });
+        };
+
+        return OkResponse<object>(profitabilityResult);
     }
 
     [HttpGet("projects/{projectId:int}/production-progress")]
@@ -113,10 +113,9 @@ public sealed class ReportsController(ErpFactoryDbContext db) : ApiControllerBas
                 x.StandardQtyExpected,
                 x.WastageQty
             })
-            .Cast<object>()
             .ToListAsync(ct);
 
-        return OkCollection(rows);
+        return OkCollection<object>(rows);
     }
 
     [HttpGet("projects/{projectId:int}/mold-cost")]
@@ -131,10 +130,9 @@ public sealed class ReportsController(ErpFactoryDbContext db) : ApiControllerBas
                 Uses = g.Count(),
                 MoldDepreciationCost = g.Sum(x => x.MoldDepreciationCost)
             })
-            .Cast<object>()
             .ToListAsync(ct);
 
-        return OkCollection(rows);
+        return OkCollection<object>(rows);
     }
 
     [HttpGet("journal-entry-balance")]

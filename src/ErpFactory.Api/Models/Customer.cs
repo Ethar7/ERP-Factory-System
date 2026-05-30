@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Models;
 
 public sealed class Customer : BaseEntity

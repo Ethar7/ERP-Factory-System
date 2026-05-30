@@ -1,16 +1,11 @@
-
-using ErpFactory.Api.Models;
 using Microsoft.EntityFrameworkCore;
-using ErpFactory.Api.DTOS;
+using ErpFactory.Api.Models;
+using ErpFactory.Api.Contracts;
 
 namespace ErpFactory.Api.Data;
 
-public sealed class ErpFactoryDbContext : DbContext
+public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> options) : DbContext(options)
 {
-    public ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> options) : base(options)
-    {
-    }
-
     public DbSet<ChartOfAccount> ChartOfAccounts => Set<ChartOfAccount>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Project> Projects => Set<Project>();
@@ -48,12 +43,12 @@ public sealed class ErpFactoryDbContext : DbContext
         ConfigureUsers(modelBuilder);
 
         modelBuilder.Entity<Role>().HasData(
-    new Role { RoleId = 1, Name = "Admin" },
-    new Role { RoleId = 2, Name = "ProjectManager" },
-    new Role { RoleId = 3, Name = "InventoryUser" },
-    new Role { RoleId = 4, Name = "Accountant" },
-    new Role { RoleId = 5, Name = "Viewer" }
-);
+            new Role { RoleId = 1, Name = "Admin" },
+            new Role { RoleId = 2, Name = "ProjectManager" },
+            new Role { RoleId = 3, Name = "InventoryUser" },
+            new Role { RoleId = 4, Name = "Accountant" },
+            new Role { RoleId = 5, Name = "Viewer" }
+        );
     }
 
     private static void ConfigureAccounting(ModelBuilder modelBuilder)
@@ -72,7 +67,7 @@ public sealed class ErpFactoryDbContext : DbContext
             entity.HasKey(x => x.JournalEntryId);
             entity.Property(x => x.ReferenceType).HasMaxLength(50);
             entity.Property(x => x.Narration).HasMaxLength(500);
-            entity.Property(x => x.TransactionDate).HasDefaultValueSql("GETDATE()");
+            entity.Property(x => x.TransactionDate).HasDefaultValueSql("sysutcdatetime()");
         });
 
         modelBuilder.Entity<JournalEntryLine>(entity =>
@@ -97,7 +92,7 @@ public sealed class ErpFactoryDbContext : DbContext
             entity.Property(x => x.Phone).HasMaxLength(50);
             entity.Property(x => x.Email).HasMaxLength(100);
             entity.Property(x => x.Address).HasMaxLength(250);
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql("GETDATE()");
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("sysutcdatetime()");
             entity.HasOne(x => x.Account).WithMany(x => x.Customers).HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -107,8 +102,8 @@ public sealed class ErpFactoryDbContext : DbContext
             entity.Property(x => x.ProjectName).HasMaxLength(150);
             entity.Property(x => x.ProjectStatus).HasMaxLength(50).HasDefaultValue("Draft");
             entity.Property(x => x.TotalEstimatedBudget).HasPrecision(18, 2);
-            entity.Property(x => x.StartDate).HasDefaultValueSql("GETDATE()");
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql("GETDATE()");
+            entity.Property(x => x.StartDate).HasDefaultValueSql("sysutcdatetime()");
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("sysutcdatetime()");
             entity.HasOne(x => x.Customer).WithMany(x => x.Projects).HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.NoAction);
         });
 
@@ -147,7 +142,7 @@ public sealed class ErpFactoryDbContext : DbContext
             entity.Property(x => x.TransactionType).HasMaxLength(50);
             entity.Property(x => x.Quantity).HasPrecision(18, 4);
             entity.Property(x => x.UnitCost).HasPrecision(18, 2);
-            entity.Property(x => x.TransactionDate).HasDefaultValueSql("GETDATE()");
+            entity.Property(x => x.TransactionDate).HasDefaultValueSql("sysutcdatetime()");
             entity.Property(x => x.ReferenceType).HasMaxLength(50);
             entity.Property(x => x.Notes).HasMaxLength(250);
             entity.HasOne(x => x.Item).WithMany(x => x.Transactions).HasForeignKey(x => x.ItemId).OnDelete(DeleteBehavior.NoAction);
@@ -169,7 +164,7 @@ public sealed class ErpFactoryDbContext : DbContext
         {
             entity.HasKey(x => x.ProjectMoldId);
             entity.HasIndex(x => new { x.ProjectId, x.MoldId }).IsUnique();
-            entity.Property(x => x.AllocatedAt).HasDefaultValueSql("GETDATE()");
+            entity.Property(x => x.AllocatedAt).HasDefaultValueSql("sysutcdatetime()");
             entity.HasOne(x => x.Project).WithMany(x => x.ProjectMolds).HasForeignKey(x => x.ProjectId);
             entity.HasOne(x => x.Mold).WithMany(x => x.ProjectMolds).HasForeignKey(x => x.MoldId).OnDelete(DeleteBehavior.NoAction);
         });
@@ -209,7 +204,7 @@ public sealed class ErpFactoryDbContext : DbContext
             entity.Property(x => x.RejectedQuantity).HasPrecision(18, 2);
             entity.Property(x => x.LaborCost).HasPrecision(18, 2);
             entity.Property(x => x.MoldDepreciationCost).HasPrecision(18, 2);
-            entity.Property(x => x.OrderDate).HasDefaultValueSql("GETDATE()");
+            entity.Property(x => x.OrderDate).HasDefaultValueSql("sysutcdatetime()");
             entity.Property(x => x.ProductionStatus).HasMaxLength(50).HasDefaultValue("Setup");
             entity.HasOne(x => x.Project).WithMany(x => x.ProductionOrders).HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne(x => x.ProjectItem).WithMany().HasForeignKey(x => x.ProjectItemId).OnDelete(DeleteBehavior.NoAction);
@@ -234,7 +229,7 @@ public sealed class ErpFactoryDbContext : DbContext
         modelBuilder.Entity<DeliveryOrder>(entity =>
         {
             entity.HasKey(x => x.DeliveryOrderId);
-            entity.Property(x => x.DeliveryDate).HasDefaultValueSql("GETDATE()");
+            entity.Property(x => x.DeliveryDate).HasDefaultValueSql("sysutcdatetime()");
             entity.Property(x => x.DriverName).HasMaxLength(100);
             entity.Property(x => x.VehicleNumber).HasMaxLength(50);
             entity.Property(x => x.LoadingTicketNumber).HasMaxLength(50);
@@ -260,7 +255,7 @@ public sealed class ErpFactoryDbContext : DbContext
         modelBuilder.Entity<SiteOperation>(entity =>
         {
             entity.HasKey(x => x.SiteOperationId);
-            entity.Property(x => x.OperationDate).HasDefaultValueSql("GETDATE()");
+            entity.Property(x => x.OperationDate).HasDefaultValueSql("sysutcdatetime()");
             entity.Property(x => x.InstalledQuantity).HasPrecision(18, 2);
             entity.Property(x => x.SupervisorLaborCost).HasPrecision(18, 2);
             entity.Property(x => x.DailyExpenses).HasPrecision(18, 2);
@@ -289,10 +284,8 @@ public sealed class ErpFactoryDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(x => x.UserId);
-
             entity.Property(x => x.Username).HasMaxLength(100);
             entity.Property(x => x.Email).HasMaxLength(150);
-
             entity.HasOne(x => x.Role)
                   .WithMany(r => r.Users)
                   .HasForeignKey(x => x.RoleId)

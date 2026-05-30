@@ -1,6 +1,4 @@
-namespace ErpFactory.Api.DTOS;
-
-using ErpFactory.Api.Models;
+namespace ErpFactory.Api.Contracts;
 
 public sealed class ProjectCostSummary
 {

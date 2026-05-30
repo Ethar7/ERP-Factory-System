@@ -1,10 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ErpFactory.Api.DTOS;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -67,7 +66,7 @@ public sealed class AccountingController(ErpFactoryDbContext db) : ApiController
         }
         catch (DbUpdateException ex)
         {
-            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+            return FailResponse<IdResponse>("Database update failed: " + ex.Message);
         }
         return CreatedResponse(nameof(GetJournalEntryById), new { journalEntryId = entry.JournalEntryId }, new IdResponse(entry.JournalEntryId));
     }

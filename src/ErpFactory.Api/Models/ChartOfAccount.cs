@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Models;
 
-public sealed class ChartOfAccount
+public sealed class ChartOfAccount : BaseEntity
 {
     public int AccountId { get; set; }
     public string AccountCode { get; set; } = string.Empty;

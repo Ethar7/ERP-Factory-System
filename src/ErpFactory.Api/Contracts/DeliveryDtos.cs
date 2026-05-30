@@ -21,6 +21,7 @@ public sealed class CreateDeliveryOrderRequest
     public string? VehicleNumber { get; set; }
     public string? LoadingTicketNumber { get; set; }
     public string? DeliveryTicketNumber { get; set; }
+    public List<CreateDeliveryItemRequest> Items { get; set; } = new();
 }
 
 public sealed class UpdateDeliveryStatusRequest

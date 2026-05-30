@@ -1,4 +1,3 @@
-using BCrypt.Net;
 namespace ErpFactory.Api.Services;
 
 public sealed class BcryptPasswordHasher : IPasswordHasher

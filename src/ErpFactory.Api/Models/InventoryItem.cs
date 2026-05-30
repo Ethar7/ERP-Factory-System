@@ -1,9 +1,6 @@
-
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Models;
 
-public sealed class InventoryItem
+public sealed class InventoryItem : BaseEntity
 {
     public int ItemId { get; set; }
     public string ItemName { get; set; } = string.Empty;

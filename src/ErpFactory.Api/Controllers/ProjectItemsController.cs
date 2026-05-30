@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -14,7 +15,7 @@ public sealed class ProjectItemsController(ErpFactoryDbContext db) : ApiControll
     [HttpPut("{projectItemId:int}")]
     public async Task<ActionResult<ApiResponse<ProjectItem>>> Update(int projectItemId, CreateProjectItemRequest request, CancellationToken ct)
     {
-        var item = await db.ProjectItems.FindAsync([projectItemId], ct);
+        var item = await db.ProjectItems.FirstOrDefaultAsync(x => x.ProjectItemId == projectItemId, ct);
         if (item is null)
         {
             return NotFoundResponse<ProjectItem>();
@@ -34,7 +35,7 @@ public sealed class ProjectItemsController(ErpFactoryDbContext db) : ApiControll
     [HttpDelete("{projectItemId:int}")]
     public async Task<ActionResult<ApiResponse<IdResponse>>> Delete(int projectItemId, CancellationToken ct)
     {
-        var item = await db.ProjectItems.FindAsync([projectItemId], ct);
+        var item = await db.ProjectItems.FirstOrDefaultAsync(x => x.ProjectItemId == projectItemId, ct);
         if (item is null)
         {
             return NotFoundResponse<IdResponse>();

@@ -1,10 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using ErpFactory.Api.DTOS;
-using Microsoft.EntityFrameworkCore;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -53,7 +52,7 @@ public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBa
         {
             ProjectName = request.ProjectName,
             CustomerId = request.CustomerId,
-            StartDate = request.StartDate ?? DateTime.Now,
+            StartDate = request.StartDate ?? DateTime.UtcNow,
             TotalEstimatedBudget = request.TotalEstimatedBudget,
             Items = request.Items?.Select(ToProjectItem).ToList() ?? new List<ProjectItem>()
         };
@@ -65,15 +64,16 @@ public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBa
         }
         catch (DbUpdateException ex)
         {
-            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+            return FailResponse<IdResponse>("Database update failed: " + ex.Message);
         }
+
         return CreatedResponse(nameof(GetProjectById), new { projectId = project.ProjectId }, new IdResponse(project.ProjectId));
     }
 
     [HttpPut("{projectId:int}")]
     public async Task<ActionResult<ApiResponse<Project>>> Update(int projectId, CreateProjectRequest request, CancellationToken ct)
     {
-        var project = await db.Projects.FindAsync(new object[] { projectId }, ct);
+        var project = await db.Projects.FirstOrDefaultAsync(x => x.ProjectId == projectId, ct);
         if (project is null)
         {
             return NotFoundResponse<Project>();
@@ -91,7 +91,7 @@ public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBa
     [HttpPatch("{projectId:int}/status")]
     public async Task<ActionResult<ApiResponse<Project>>> UpdateStatus(int projectId, UpdateProjectStatusRequest request, CancellationToken ct)
     {
-        var project = await db.Projects.FindAsync(new object[] { projectId }, ct);
+        var project = await db.Projects.FirstOrDefaultAsync(x => x.ProjectId == projectId, ct);
         if (project is null)
         {
             return NotFoundResponse<Project>();
@@ -155,7 +155,9 @@ public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBa
     {
         var project = await db.Projects.AsNoTracking().FirstOrDefaultAsync(x => x.ProjectId == projectId, ct);
         if (project is null)
+        {
             return NotFoundResponse<object>();
+        }
 
         var production = await db.ProductionOrders.AsNoTracking()
             .Where(x => x.ProjectId == projectId)
@@ -190,7 +192,7 @@ public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBa
             })
             .FirstOrDefaultAsync(ct);
 
-        return OkResponse<object>(new
+        var dashboardData = new
         {
             project.ProjectId,
             project.ProjectName,
@@ -198,6 +200,8 @@ public sealed class ProjectsController(ErpFactoryDbContext db) : ApiControllerBa
             Production = production ?? new { TargetQuantity = 0m, ProducedQuantity = 0m, GoodQuantity = 0m, RejectedQuantity = 0m },
             Delivery = delivery ?? new { QuantityShipped = 0m, QuantityReceived = 0m, QuantityDamagedInTransit = 0m },
             Installation = installation ?? new { InstalledQuantity = 0m, SiteCost = 0m }
-        });
+        };
+
+        return OkResponse<object>(dashboardData);
     }
 }

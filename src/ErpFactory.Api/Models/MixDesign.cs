@@ -1,9 +1,6 @@
-
-using System.Collections.Generic;
-
 namespace ErpFactory.Api.Models;
 
-public sealed class MixDesign
+public sealed class MixDesign : BaseEntity
 {
     public int MixDesignId { get; set; }
     public string MixName { get; set; } = string.Empty;

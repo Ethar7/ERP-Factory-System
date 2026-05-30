@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ErpFactory.Api.Contracts;
 using ErpFactory.Api.Data;
 using ErpFactory.Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ErpFactory.Api.Controllers;
 
@@ -46,15 +46,16 @@ public sealed class CustomersController(ErpFactoryDbContext db) : ApiControllerB
         }
         catch (DbUpdateException ex)
         {
-            return BadRequest(ApiResponse<IdResponse>.Fail("Database update failed: " + ex.Message));
+            return FailResponse<IdResponse>("Database update failed: " + ex.Message);
         }
+
         return CreatedResponse(nameof(GetCustomerById), new { customerId = customer.CustomerId }, new IdResponse(customer.CustomerId));
     }
 
     [HttpPut("{customerId:int}")]
     public async Task<ActionResult<ApiResponse<Customer>>> Update(int customerId, CreateCustomerRequest request, CancellationToken ct)
     {
-        var customer = await db.Customers.FindAsync([customerId], ct);
+        var customer = await db.Customers.FirstOrDefaultAsync(x => x.CustomerId == customerId, ct);
         if (customer is null)
         {
             return NotFoundResponse<Customer>();
@@ -74,7 +75,12 @@ public sealed class CustomersController(ErpFactoryDbContext db) : ApiControllerB
     [HttpGet("{customerId:int}/projects")]
     public async Task<ActionResult<ApiResponse<IReadOnlyCollection<Project>>>> GetProjects(int customerId, CancellationToken ct)
     {
-        var projects = await db.Projects.AsNoTracking().Where(x => x.CustomerId == customerId).OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
+        var projects = await db.Projects
+            .AsNoTracking()
+            .Where(x => x.CustomerId == customerId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync(ct);
+
         return OkCollection(projects);
     }
 }
