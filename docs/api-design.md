@@ -6,6 +6,8 @@
 
 ## 📑 Table of Contents
 
+- [👥 Suggested User Roles](#-suggested-user-roles)
+- [⚖️ Main Business Rules](#️-main-business-rules)
 - [🔐 Auth](#-auth)
 - [👥 Customers](#-customers)
 - [📂 Projects](#-projects)
@@ -19,6 +21,30 @@
 - [💰 Accounting](#-accounting)
 - [📊 Reports](#-reports)
 - [👤 Admin Users](#-admin-users)
+
+---
+
+## 👥 Suggested User Roles
+
+| Role | Main Access |
+| :--- | :--- |
+| **Admin** | صلاحية كاملة للنظام |
+| **ProjectManager** | المشاريع، الـ BOQ، القوالب، الإنتاج، التوريد، والتقارير |
+| **InventoryUser** | إدارة المخزون وحركات الأصناف |
+| **Accountant** | الحسابات، القيود اليومية، والتقارير المالية |
+
+---
+
+## ⚖️ Main Business Rules
+
+> قواعد العمل الأساسية التي يطبقها النظام تلقائياً
+
+- ✅ يجب اعتماد المشروع قبل البدء في إنشاء أوامر الإنتاج.
+- ✅ أوامر الإنتاج مرتبطة إجبارياً بـ (عنصر مشروع، خلطة خرسانية، وقالب).
+- ✅ يتم تحديث عمر القالب (Lifespan) تلقائياً عند ترحيل الإنتاج.
+- ✅ ترحيل الخامات يولد حركات مخزنية وقيوداً محاسبية تلقائياً.
+- ✅ لا يمكن التوريد (Delivery) بكميات تزيد عن الرصيد الجاهز بالمخزن.
+- ✅ لا يمكن تسجيل استهلاك في الموقع (Site Ops) يتجاوز الكميات الموردة.
 
 ---
 
