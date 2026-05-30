@@ -219,9 +219,9 @@ SiteOperations ||--o{ SiteMaterialConsumption : material_usage
 
 JournalEntries ||--o{ JournalEntryLines : entry_lines
 ROLES ||--o{ USERS : has
-USERS ||--o{ Progects : creates
+USERS ||--o{ Projects : creates
 USERS ||--o{ ProductionOrders : manages
-USERS ||--o{ JornalEntries : posts
+USERS ||--o{ JournalEntries : posts
 ```
 
 ## Reporting Views
