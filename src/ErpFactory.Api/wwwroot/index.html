@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ERP Factory</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <section id="auth-view" class="auth-shell">
+    <div class="auth-panel">
+      <div>
+        <p class="eyebrow">ERP Factory System</p>
+        <h1>إدارة تشغيل المصنع من شاشة واحدة</h1>
+        <p class="muted">سجل الدخول للوصول للمشاريع، المخزون، الإنتاج، التسليم، الموقع، والحسابات حسب صلاحيات المستخدم.</p>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-auth-tab="login" type="button">دخول</button>
+        <button class="tab" data-auth-tab="register" type="button">مستخدم جديد</button>
+      </div>
+
+      <form id="login-form" class="form-stack">
+        <label>اسم المستخدم<input name="username" autocomplete="username" required></label>
+        <label>كلمة المرور<input name="password" type="password" autocomplete="current-password" required></label>
+        <button class="primary" type="submit">دخول النظام</button>
+      </form>
+
+      <form id="register-form" class="form-stack hidden">
+        <label>الاسم الكامل<input name="fullName" autocomplete="name"></label>
+        <label>البريد الإلكتروني<input name="email" type="email" autocomplete="email"></label>
+        <label>اسم المستخدم<input name="username" autocomplete="username" required></label>
+        <label>كلمة المرور<input name="password" type="password" autocomplete="new-password" required minlength="6"></label>
+        <button class="primary" type="submit">إنشاء حساب</button>
+      </form>
+
+      <p id="auth-message" class="message" role="status"></p>
+    </div>
+  </section>
+
+  <section id="app-view" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">EF</span>
+        <div>
+          <strong>ERP Factory</strong>
+          <small id="user-chip">متصل</small>
+        </div>
+      </div>
+
+      <nav id="nav-list" class="nav-list" aria-label="الأقسام"></nav>
+
+      <button id="logout-button" class="ghost" type="button">تسجيل الخروج</button>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">لوحة التشغيل</p>
+          <h2 id="page-title">الرئيسية</h2>
+        </div>
+        <div class="top-actions">
+          <button id="refresh-button" class="secondary" type="button">تحديث</button>
+          <a class="secondary link-button" href="/swagger" target="_blank" rel="noreferrer">Swagger</a>
+        </div>
+      </header>
+
+      <section id="toast" class="toast hidden" role="status"></section>
+      <section id="content" class="content"></section>
+    </main>
+  </section>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

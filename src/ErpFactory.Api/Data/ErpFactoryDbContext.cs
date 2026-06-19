@@ -271,6 +271,7 @@ public sealed class ErpFactoryDbContext(DbContextOptions<ErpFactoryDbContext> op
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(x => x.UserId);
+            entity.HasIndex(x => x.Username).IsUnique();
             entity.Property(x => x.Username).HasMaxLength(100);
             entity.Property(x => x.Email).HasMaxLength(150);
             entity.HasOne(x => x.Role).WithMany(r => r.Users).HasForeignKey(x => x.RoleId).OnDelete(DeleteBehavior.Restrict);

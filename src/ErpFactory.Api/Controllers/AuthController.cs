@@ -20,7 +20,9 @@ public sealed class AuthController(
     [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<AuthUserDto>>> Register(RegisterRequest req, CancellationToken ct)
     {
-        if (await db.Users.AnyAsync(u => u.Username == req.Username, ct))
+        var username = req.Username.Trim();
+
+        if (await db.Users.AnyAsync(u => u.Username == username, ct))
         {
             return FailResponse<AuthUserDto>("Username already exists");
         }
@@ -37,7 +39,7 @@ public sealed class AuthController(
 
         var user = new User
         {
-            Username = req.Username,
+            Username = username,
             PasswordHash = hasher.Hash(req.Password),
             FullName = req.FullName ?? string.Empty,
             Email = req.Email ?? string.Empty,
@@ -45,7 +47,14 @@ public sealed class AuthController(
         };
 
         db.Users.Add(user);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            return FailResponse<AuthUserDto>("Username already exists");
+        }
 
         var result = new AuthUserDto
         {
@@ -63,9 +72,13 @@ public sealed class AuthController(
     [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<LoginResponse>>> Login(LoginRequest req, CancellationToken ct)
     {
+        var username = req.Username.Trim();
+
         var user = await db.Users
             .Include(u => u.Role)
-            .SingleOrDefaultAsync(u => u.Username == req.Username, ct);
+            .Where(u => u.Username == username)
+            .OrderBy(u => u.UserId)
+            .FirstOrDefaultAsync(ct);
 
         if (user is null || !hasher.Verify(user.PasswordHash, req.Password))
         {
