@@ -437,7 +437,7 @@
 // init();
 
 
-const API_BASE_URL = "http://etharosama-001-site1.ftempurl.com"; 
+const API_BASE_URL = ""; 
 
 const state = {
   token: localStorage.getItem("erp.token"),
