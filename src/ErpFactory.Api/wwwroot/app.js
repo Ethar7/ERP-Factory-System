@@ -293,7 +293,7 @@
 // init();
 
 // رابط السيرفر
-const API_BASE_URL = "https://etharosama-001-site1.ftempurl.com"; 
+const API_BASE_URL = "http://etharosama-001-site1.ftempurl.com"; 
 
 const state = {
   token: localStorage.getItem("erp.token"),
