@@ -26,8 +26,13 @@ public sealed class AuthController(
         {
             return FailResponse<AuthUserDto>("Username already exists");
         }
-
-        string targetRoleName = !await db.Users.AnyAsync(ct) ? "Admin" : "Viewer";
+        var userCount = await db.Users.CountAsync(ct);
+    
+        if (userCount >= 4)
+        {
+            return BadRequest("لا يمكن تسجيل مستخدمين جدد، تم الوصول للحد الأقصى (4 مستخدمين).");
+        }
+            string targetRoleName = !await db.Users.AnyAsync(ct) ? "Admin" : "Viewer";
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == targetRoleName, ct);
 
         if (role is null)
@@ -104,3 +109,4 @@ public sealed class AuthController(
         return OkResponse(response, "Login successful");
     }
 }
+

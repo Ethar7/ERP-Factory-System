@@ -32,37 +32,25 @@ public sealed class AdminUsersController(ErpFactoryDbContext db) : ApiController
         return OkCollection<object>(users.Cast<object>().ToList());
     }
 
-    [HttpPut("{userId:int}/role")]
-    public async Task<ActionResult<ApiResponse<object>>> ChangeRole(int userId, [FromBody] string roleName, CancellationToken ct)
+    [Authorize(Roles = "Admin")]
+[HttpPut("users/{userId}/role")]
+public async Task<IActionResult> UpdateUserRole(int userId, [FromBody] string newRole)
+{
+    // التأكد من أن الدور المرسل هو واحد من الأدوار المعتمدة
+    var allowedRoles = new List<string> { "Admin", "ProjectManager", "InventoryUser", "Accountant" };
+    
+    if (!allowedRoles.Contains(newRole))
     {
-        var user = await db.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == userId, ct);
-
-        if (user is null)
-        {
-            return NotFoundResponse<object>("User not found");
-        }
-
-        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == roleName, ct);
-
-        if (role is null)
-        {
-            role = new Role { Name = roleName };
-            db.Roles.Add(role);
-            await db.SaveChangesAsync(ct);
-        }
-
-        user.RoleId = role.RoleId;
-        await db.SaveChangesAsync(ct);
-
-        // تعريف النتيجة كـ object لضمان توافق النوع مع الـ Generic ApiResponse
-        object result = new
-        {
-            user.UserId,
-            Role = role.Name
-        };
-
-        return OkResponse<object>(result, "Role updated successfully");
+        return BadRequest("صلاحية غير صالحة");
     }
+
+    var user = await db.Users.FindAsync(userId);
+    if (user == null) return NotFound();
+
+    user.Role = newRole; // تحديث الدور في قاعدة البيانات
+    await db.SaveChangesAsync();
+    
+    return Ok(new { message = "تم تحديث الصلاحية بنجاح" });
+}
+
 }
