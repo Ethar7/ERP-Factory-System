@@ -293,6 +293,150 @@
 // init();
 
 // رابط السيرفر
+// const API_BASE_URL = "http://etharosama-001-site1.ftempurl.com"; 
+
+// const state = {
+//   token: localStorage.getItem("erp.token"),
+//   user: JSON.parse(localStorage.getItem("erp.user") || "null"),
+//   active: "dashboard",
+//   cache: {}
+// };
+
+// const modules = {
+//   dashboard: { title: "الرئيسية" },
+//   customers: { title: "العملاء", endpoint: "/api/Customers", columns: [["customerName", "العميل"], ["contactPerson", "مسؤول التواصل"], ["phone", "الهاتف"], ["email", "البريد"], ["address", "العنوان"]], form: [["customerName", "اسم العميل", "text", true], ["contactPerson", "مسؤول التواصل"], ["phone", "الهاتف"], ["email", "البريد", "email"], ["address", "العنوان", "text", false, "wide"]] },
+//   projects: { title: "المشاريع", endpoint: "/api/Projects", columns: [["projectName", "المشروع"], ["customer.customerName", "العميل"], ["projectStatus", "الحالة", "status"], ["totalEstimatedBudget", "الميزانية", "money"], ["startDate", "تاريخ البدء", "date"]], form: [["projectName", "اسم المشروع", "text", true, "wide"], ["customerId", "رقم العميل", "number", true], ["totalEstimatedBudget", "الميزانية", "number", true], ["startDate", "تاريخ البدء", "date"]] },
+//   inventory: { title: "المخزون", endpoint: "/api/Inventory/items", columns: [["itemName", "الصنف"], ["itemType", "النوع"], ["unit", "الوحدة"], ["currentStock", "الرصيد", "number"], ["averageCost", "متوسط التكلفة", "money"]], form: [["itemName", "اسم الصنف", "text", true], ["itemType", "النوع", "text", true], ["unit", "الوحدة", "text", true], ["currentStock", "الرصيد الحالي", "number", true], ["averageCost", "متوسط التكلفة", "number", true]] },
+//   production: { title: "أوامر الإنتاج", endpoint: "/api/ProductionOrders", columns: [["batchNumber", "رقم الدفعة"], ["projectId", "المشروع"], ["targetQuantity", "المستهدف", "number"], ["producedQuantity", "المنتج", "number"], ["productionStatus", "الحالة", "status"], ["orderDate", "التاريخ", "date"]], form: [["projectId", "رقم المشروع", "number", true], ["projectItemId", "بند المشروع", "number", true], ["mixDesignId", "الخلطة", "number", true], ["moldId", "القالب", "number", true], ["batchNumber", "رقم الدفعة"], ["targetQuantity", "الكمية المستهدفة", "number", true], ["laborCost", "تكلفة العمالة", "number"], ["moldDepreciationCost", "إهلاك القالب", "number"]] },
+//   delivery: { title: "أوامر التسليم", endpoint: "/api/DeliveryOrders", columns: [["deliveryOrderId", "رقم الأمر"], ["projectId", "المشروع"], ["driverName", "السائق"], ["vehicleNumber", "السيارة"], ["deliveryStatus", "الحالة", "status"], ["deliveryDate", "التاريخ", "date"]], form: [["projectId", "رقم المشروع", "number", true], ["driverName", "اسم السائق"], ["vehicleNumber", "رقم السيارة"], ["loadingTicketNumber", "تذكرة التحميل"], ["deliveryTicketNumber", "تذكرة التسليم"]] },
+//   site: { title: "عمليات الموقع", endpoint: "/api/SiteOperations", columns: [["siteOperationId", "رقم العملية"], ["projectId", "المشروع"], ["projectItemId", "البند"], ["installedQuantity", "الكمية المركبة", "number"], ["supervisorLaborCost", "إشراف", "money"], ["dailyExpenses", "مصروفات", "money"]], form: [["projectId", "رقم المشروع", "number", true], ["projectItemId", "بند المشروع", "number", true], ["installedQuantity", "الكمية المركبة", "number", true], ["supervisorLaborCost", "تكلفة الإشراف", "number"], ["dailyExpenses", "مصروفات يومية", "number"]] },
+//   accounting: { title: "الحسابات", endpoint: "/api/Accounting/chart-of-accounts", columns: [["accountCode", "كود الحساب"], ["accountName", "اسم الحساب"], ["accountType", "النوع"]], form: [["accountCode", "كود الحساب", "text", true], ["accountName", "اسم الحساب", "text", true], ["accountType", "نوع الحساب", "text", true]] },
+//   reports: { title: "التقارير", endpoint: "/api/Reports/project-cost-summary", columns: [["projectName", "المشروع"], ["totalEstimatedBudget", "الميزانية", "money"], ["productionDirectCost", "تكلفة الإنتاج", "money"], ["siteDirectCost", "تكلفة الموقع", "money"], ["totalDirectCost", "إجمالي التكلفة", "money"]] },
+//   adminUsers: { title: "إدارة المستخدمين", endpoint: "/api/admin/users" }
+// };
+
+// const navLabels = [
+//   ["dashboard", "الرئيسية"], ["customers", "العملاء"], ["projects", "المشاريع"], ["inventory", "المخزون"], 
+//   ["production", "الإنتاج"], ["delivery", "التسليم"], ["site", "الموقع"], ["accounting", "الحسابات"], 
+//   ["reports", "التقارير"], ["adminUsers", "إدارة المستخدمين"]
+// ];
+
+// const $ = (selector) => document.querySelector(selector);
+
+// function init() {
+//   bindAuthTabs();
+//   $("#login-form").addEventListener("submit", onLogin);
+//   $("#register-form").addEventListener("submit", onRegister);
+//   $("#logout-button").addEventListener("click", logout);
+//   $("#refresh-button").addEventListener("click", () => renderCurrent(true));
+//   state.token ? showApp() : showAuth();
+// }
+// // تعديل: دالة بناء القائمة للتأكد من الصلاحيات
+// function renderNav() {
+//   const role = state.user?.role || "";
+//   console.log("Current User Role:", role); // للتصحيح في الكونسول
+  
+//   const navList = $("#nav-list");
+//   navList.innerHTML = navLabels.map(([key, label]) => {
+//     // إخفاء إدارة المستخدمين إذا لم يكن الدور Admin
+//     if (key === "adminUsers" && role !== "Admin") return "";
+//     return `<button class="nav-item" type="button" data-module="${key}">${label}</button>`;
+//   }).join("");
+
+//   navList.querySelectorAll("[data-module]").forEach((button) => {
+//     button.addEventListener("click", () => {
+//       state.active = button.dataset.module;
+//       renderCurrent();
+//     });
+//   });
+// }
+// async function renderDashboard(force = false) {
+//   const content = $("#content");
+//   content.innerHTML = loadingMarkup();
+//   content.innerHTML = `<section class="panel"><h3>مرحباً بك في لوحة تحكم المصنع</h3><p>النظام يعمل الآن على السيرفر.</p></section>`;
+// }
+// function showApp() {
+//   $("#auth-view").classList.add("hidden");
+//   $("#app-view").classList.remove("hidden");
+//   const name = state.user?.fullName || state.user?.username || "مستخدم";
+//   const role = state.user?.role ? ` - ${state.user.role}` : "";
+//   $("#user-chip").textContent = `${name}${role}`;
+  
+//   // استدعاء renderNav هنا يضمن وجود بيانات المستخدم
+//   renderNav(); 
+//   renderCurrent();
+// }
+
+// // (باقي الدوال تبقى كما هي في كودك - تأكدي من لصقها هنا)
+// async function onLogin(event) { event.preventDefault(); await authSubmit("/api/Auth/login", new FormData(event.currentTarget), true); }
+// async function onRegister(event) { event.preventDefault(); await authSubmit("/api/Auth/register", new FormData(event.currentTarget), false); }
+// async function authSubmit(url, formData, isLogin) {
+//   $("#auth-message").textContent = "جاري التحميل...";
+//   const payload = Object.fromEntries(formData.entries());
+//   try {
+//     const result = await request(url, { method: "POST", body: payload, skipAuth: true });
+//     if (isLogin) { saveSession(result.accessToken, result.user); showApp(); return; }
+//     $("#auth-message").textContent = "تم إنشاء الحساب."; $("#register-form").reset();
+//   } catch (error) { $("#auth-message").textContent = error.message; }
+// }
+
+// function saveSession(token, user) { state.token = token; state.user = user; localStorage.setItem("erp.token", token); localStorage.setItem("erp.user", JSON.stringify(user)); }
+// function logout() { localStorage.clear(); state.token = null; state.user = null; state.cache = {}; showAuth(); }
+// function showAuth() { $("#auth-view").classList.remove("hidden"); $("#app-view").classList.add("hidden"); }
+// function renderCurrent(force = false) {
+//   document.querySelectorAll("[data-module]").forEach((b) => b.classList.toggle("active", b.dataset.module === state.active));
+//   $("#page-title").textContent = modules[state.active].title;
+//   state.active === "dashboard" ? renderDashboard(force) : renderModule(state.active, force);
+// }
+// async function renderModule(key, force = false) {
+//   const config = modules[key];
+//   const content = $("#content");
+//   content.innerHTML = loadingMarkup();
+//   const result = await safeLoad(key, config.endpoint, force);
+//   if (key === "adminUsers") {
+//     content.innerHTML = `<section class="panel"><h3>إدارة صلاحيات المستخدمين</h3><table><thead><tr><th>المستخدم</th><th>الصلاحية</th></tr></thead><tbody>${result.rows.map(u => `<tr><td>${u.username}</td><td><select onchange="changeUserRole(${u.userId}, this.value)"><option value="Admin" ${u.role === 'Admin' ? 'selected' : ''}>Admin</option><option value="ProjectManager" ${u.role === 'ProjectManager' ? 'selected' : ''}>ProjectManager</option><option value="InventoryUser" ${u.role === 'InventoryUser' ? 'selected' : ''}>InventoryUser</option><option value="Accountant" ${u.role === 'Accountant' ? 'selected' : ''}>Accountant</option></select></td></tr>`).join("")}</tbody></table></section>`;
+//   } else {
+//     content.innerHTML = `${config.form ? formPanel(key, config.form) : ""}${result.error ? errorPanel(result.error) : ""}${tablePanel(config.title, result.rows, config.columns)}`;
+//     const f = $(`#${key}-form`); if(f) f.addEventListener("submit", (e) => submitCreate(e, key));
+//   }
+// }
+// async function changeUserRole(userId, newRole) { try { await request(`/api/admin/users/${userId}/role`, { method: "PUT", body: JSON.stringify(newRole) }); toast("تم التحديث"); renderModule("adminUsers", true); } catch (e) { toast(e.message, true); } }
+// async function request(url, options = {}) {
+//   const headers = { "Content-Type": "application/json" };
+//   if (!options.skipAuth && state.token) headers.Authorization = `Bearer ${state.token}`;
+  
+//   const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+  
+//   const response = await fetch(fullUrl, {
+//     method: options.method || "GET",
+//     headers,
+//     body: options.body ? JSON.stringify(options.body) : undefined
+//   });
+
+//   const text = await response.text(); // قراءة الرد كنص أولاً
+//   let json;
+//   try {
+//     json = JSON.parse(text);
+//   } catch (e) {
+//     // إذا لم يكن الرد JSON، فهذا يعني أن السيرفر أرسل خطأ HTML أو نص عادي
+//     if (!response.ok) throw new Error(`خطأ سيرفر (${response.status}): ${text.substring(0, 100)}`);
+//   }
+
+//   if (!response.ok) {
+//     // عرض رسالة الخطأ القادمة من السيرفر
+//     throw new Error(json?.message || json?.title || "فشل الاتصال بالسيرفر");
+//   }
+
+//   return json?.data ?? json;
+// }
+// function bindAuthTabs() { document.querySelectorAll("[data-auth-tab]").forEach(b => b.addEventListener("click", () => { document.querySelectorAll("[data-auth-tab]").forEach(x => x.classList.remove("active")); b.classList.add("active"); const isLogin = b.dataset.authTab === "login"; $("#login-form").classList.toggle("hidden", !isLogin); $("#register-form").classList.toggle("hidden", isLogin); })); }
+// function loadingMarkup() { return `<section class="panel">جاري التحميل...</section>`; }
+// function tablePanel(t, r, c) { return `<section class="panel"><h3>${t}</h3><table><thead><tr>${c.map(col => `<th>${col[1]}</th>`).join("")}</tr></thead><tbody>${r.map(row => `<tr>${c.map(col => `<td>${row[col[0]] || '-'}</td>`).join("")}</tr>`).join("")}</tbody></table></section>`; }
+// function toast(m, e=false) { const el = $("#toast"); el.textContent = m; el.classList.remove("hidden"); setTimeout(() => el.classList.add("hidden"), 3000); }
+
+// init();
+
+
 const API_BASE_URL = "http://etharosama-001-site1.ftempurl.com"; 
 
 const state = {
@@ -315,12 +459,7 @@ const modules = {
   adminUsers: { title: "إدارة المستخدمين", endpoint: "/api/admin/users" }
 };
 
-const navLabels = [
-  ["dashboard", "الرئيسية"], ["customers", "العملاء"], ["projects", "المشاريع"], ["inventory", "المخزون"], 
-  ["production", "الإنتاج"], ["delivery", "التسليم"], ["site", "الموقع"], ["accounting", "الحسابات"], 
-  ["reports", "التقارير"], ["adminUsers", "إدارة المستخدمين"]
-];
-
+const navLabels = [["dashboard", "الرئيسية"], ["customers", "العملاء"], ["projects", "المشاريع"], ["inventory", "المخزون"], ["production", "الإنتاج"], ["delivery", "التسليم"], ["site", "الموقع"], ["accounting", "الحسابات"], ["reports", "التقارير"], ["adminUsers", "إدارة المستخدمين"]];
 const $ = (selector) => document.querySelector(selector);
 
 function init() {
@@ -331,107 +470,75 @@ function init() {
   $("#refresh-button").addEventListener("click", () => renderCurrent(true));
   state.token ? showApp() : showAuth();
 }
-// تعديل: دالة بناء القائمة للتأكد من الصلاحيات
+
 function renderNav() {
   const role = state.user?.role || "";
-  console.log("Current User Role:", role); // للتصحيح في الكونسول
-  
   const navList = $("#nav-list");
   navList.innerHTML = navLabels.map(([key, label]) => {
-    // إخفاء إدارة المستخدمين إذا لم يكن الدور Admin
     if (key === "adminUsers" && role !== "Admin") return "";
     return `<button class="nav-item" type="button" data-module="${key}">${label}</button>`;
   }).join("");
-
-  navList.querySelectorAll("[data-module]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.active = button.dataset.module;
-      renderCurrent();
-    });
-  });
+  navList.querySelectorAll("[data-module]").forEach((btn) => btn.addEventListener("click", () => { state.active = btn.dataset.module; renderCurrent(); }));
 }
+
 async function renderDashboard(force = false) {
   const content = $("#content");
   content.innerHTML = loadingMarkup();
-  content.innerHTML = `<section class="panel"><h3>مرحباً بك في لوحة تحكم المصنع</h3><p>النظام يعمل الآن على السيرفر.</p></section>`;
-}
-function showApp() {
-  $("#auth-view").classList.add("hidden");
-  $("#app-view").classList.remove("hidden");
-  const name = state.user?.fullName || state.user?.username || "مستخدم";
-  const role = state.user?.role ? ` - ${state.user.role}` : "";
-  $("#user-chip").textContent = `${name}${role}`;
-  
-  // استدعاء renderNav هنا يضمن وجود بيانات المستخدم
-  renderNav(); 
-  renderCurrent();
+  // يمكنك هنا إعادة إضافة منطق عرض الإحصائيات إذا أردت
+  content.innerHTML = `<section class="panel"><h3>لوحة التحكم</h3><p>مرحباً بك في النظام.</p></section>`;
 }
 
-// (باقي الدوال تبقى كما هي في كودك - تأكدي من لصقها هنا)
-async function onLogin(event) { event.preventDefault(); await authSubmit("/api/Auth/login", new FormData(event.currentTarget), true); }
-async function onRegister(event) { event.preventDefault(); await authSubmit("/api/Auth/register", new FormData(event.currentTarget), false); }
-async function authSubmit(url, formData, isLogin) {
-  $("#auth-message").textContent = "جاري التحميل...";
-  const payload = Object.fromEntries(formData.entries());
-  try {
-    const result = await request(url, { method: "POST", body: payload, skipAuth: true });
-    if (isLogin) { saveSession(result.accessToken, result.user); showApp(); return; }
-    $("#auth-message").textContent = "تم إنشاء الحساب."; $("#register-form").reset();
-  } catch (error) { $("#auth-message").textContent = error.message; }
-}
-
-function saveSession(token, user) { state.token = token; state.user = user; localStorage.setItem("erp.token", token); localStorage.setItem("erp.user", JSON.stringify(user)); }
-function logout() { localStorage.clear(); state.token = null; state.user = null; state.cache = {}; showAuth(); }
-function showAuth() { $("#auth-view").classList.remove("hidden"); $("#app-view").classList.add("hidden"); }
-function renderCurrent(force = false) {
-  document.querySelectorAll("[data-module]").forEach((b) => b.classList.toggle("active", b.dataset.module === state.active));
-  $("#page-title").textContent = modules[state.active].title;
-  state.active === "dashboard" ? renderDashboard(force) : renderModule(state.active, force);
-}
 async function renderModule(key, force = false) {
   const config = modules[key];
   const content = $("#content");
   content.innerHTML = loadingMarkup();
   const result = await safeLoad(key, config.endpoint, force);
   if (key === "adminUsers") {
-    content.innerHTML = `<section class="panel"><h3>إدارة صلاحيات المستخدمين</h3><table><thead><tr><th>المستخدم</th><th>الصلاحية</th></tr></thead><tbody>${result.rows.map(u => `<tr><td>${u.username}</td><td><select onchange="changeUserRole(${u.userId}, this.value)"><option value="Admin" ${u.role === 'Admin' ? 'selected' : ''}>Admin</option><option value="ProjectManager" ${u.role === 'ProjectManager' ? 'selected' : ''}>ProjectManager</option><option value="InventoryUser" ${u.role === 'InventoryUser' ? 'selected' : ''}>InventoryUser</option><option value="Accountant" ${u.role === 'Accountant' ? 'selected' : ''}>Accountant</option></select></td></tr>`).join("")}</tbody></table></section>`;
+    content.innerHTML = `<section class="panel"><h3>إدارة المستخدمين</h3><table><thead><tr><th>المستخدم</th><th>الصلاحية</th></tr></thead><tbody>${result.rows.map(u => `<tr><td>${u.username}</td><td><select onchange="changeUserRole(${u.userId}, this.value)"><option value="Admin" ${u.role === 'Admin' ? 'selected' : ''}>Admin</option><option value="ProjectManager" ${u.role === 'ProjectManager' ? 'selected' : ''}>ProjectManager</option><option value="InventoryUser" ${u.role === 'InventoryUser' ? 'selected' : ''}>InventoryUser</option><option value="Accountant" ${u.role === 'Accountant' ? 'selected' : ''}>Accountant</option></select></td></tr>`).join("")}</tbody></table></section>`;
   } else {
     content.innerHTML = `${config.form ? formPanel(key, config.form) : ""}${result.error ? errorPanel(result.error) : ""}${tablePanel(config.title, result.rows, config.columns)}`;
     const f = $(`#${key}-form`); if(f) f.addEventListener("submit", (e) => submitCreate(e, key));
   }
 }
-async function changeUserRole(userId, newRole) { try { await request(`/api/admin/users/${userId}/role`, { method: "PUT", body: JSON.stringify(newRole) }); toast("تم التحديث"); renderModule("adminUsers", true); } catch (e) { toast(e.message, true); } }
+
+// الدوال المساعدة الأساسية التي كانت مفقودة
+async function safeLoad(key, url, force = false) {
+  if (!force && state.cache[key]) return state.cache[key];
+  try { const rows = await request(url); const result = { rows: Array.isArray(rows) ? rows : [], error: null }; state.cache[key] = result; return result; }
+  catch (error) { const result = { rows: [], error: error.message }; state.cache[key] = result; return result; }
+}
+
+async function submitCreate(event, key) {
+  event.preventDefault();
+  const config = modules[key];
+  const body = Object.fromEntries(new FormData(event.currentTarget).entries());
+  try { await request(config.endpoint, { method: "POST", body }); event.currentTarget.reset(); delete state.cache[key]; toast("تم الحفظ"); renderModule(key, true); }
+  catch (error) { toast(error.message, true); }
+}
+
 async function request(url, options = {}) {
   const headers = { "Content-Type": "application/json" };
   if (!options.skipAuth && state.token) headers.Authorization = `Bearer ${state.token}`;
-  
   const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
-  
-  const response = await fetch(fullUrl, {
-    method: options.method || "GET",
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined
-  });
-
-  const text = await response.text(); // قراءة الرد كنص أولاً
-  let json;
-  try {
-    json = JSON.parse(text);
-  } catch (e) {
-    // إذا لم يكن الرد JSON، فهذا يعني أن السيرفر أرسل خطأ HTML أو نص عادي
-    if (!response.ok) throw new Error(`خطأ سيرفر (${response.status}): ${text.substring(0, 100)}`);
-  }
-
-  if (!response.ok) {
-    // عرض رسالة الخطأ القادمة من السيرفر
-    throw new Error(json?.message || json?.title || "فشل الاتصال بالسيرفر");
-  }
-
+  const response = await fetch(fullUrl, { method: options.method || "GET", headers, body: options.body ? JSON.stringify(options.body) : undefined });
+  const text = await response.text();
+  let json; try { json = JSON.parse(text); } catch(e) { if(!response.ok) throw new Error("خطأ اتصال"); }
+  if (!response.ok) throw new Error(json?.message || "حدث خطأ");
   return json?.data ?? json;
 }
+
+function showApp() { $("#auth-view").classList.add("hidden"); $("#app-view").classList.remove("hidden"); renderNav(); renderCurrent(); }
+function showAuth() { $("#auth-view").classList.remove("hidden"); $("#app-view").classList.add("hidden"); }
+function renderCurrent(force = false) { state.active === "dashboard" ? renderDashboard(force) : renderModule(state.active, force); }
+function formPanel(k, f) { return `<form id="${k}-form">${f.map(([n, l]) => `<label>${l}<input name="${n}"></label>`).join("")}<button type="submit">إضافة</button></form>`; }
+function tablePanel(t, r, c) { return `<table><thead><tr>${c.map(x => `<th>${x[1]}</th>`).join("")}</tr></thead><tbody>${r.map(row => `<tr>${c.map(x => `<td>${row[x[0]] || ''}</td>`).join("")}</tr>`).join("")}</tbody></table>`; }
+function loadingMarkup() { return "جاري التحميل..."; }
+function errorPanel(m) { return `<p>${m}</p>`; }
 function bindAuthTabs() { document.querySelectorAll("[data-auth-tab]").forEach(b => b.addEventListener("click", () => { document.querySelectorAll("[data-auth-tab]").forEach(x => x.classList.remove("active")); b.classList.add("active"); const isLogin = b.dataset.authTab === "login"; $("#login-form").classList.toggle("hidden", !isLogin); $("#register-form").classList.toggle("hidden", isLogin); })); }
-function loadingMarkup() { return `<section class="panel">جاري التحميل...</section>`; }
-function tablePanel(t, r, c) { return `<section class="panel"><h3>${t}</h3><table><thead><tr>${c.map(col => `<th>${col[1]}</th>`).join("")}</tr></thead><tbody>${r.map(row => `<tr>${c.map(col => `<td>${row[col[0]] || '-'}</td>`).join("")}</tr>`).join("")}</tbody></table></section>`; }
-function toast(m, e=false) { const el = $("#toast"); el.textContent = m; el.classList.remove("hidden"); setTimeout(() => el.classList.add("hidden"), 3000); }
+function saveSession(t, u) { state.token = t; state.user = u; localStorage.setItem("erp.token", t); localStorage.setItem("erp.user", JSON.stringify(u)); }
+async function onLogin(e) { e.preventDefault(); await authSubmit("/api/Auth/login", new FormData(e.currentTarget), true); }
+async function authSubmit(u, d, i) { try { const r = await request(u, { method: "POST", body: Object.fromEntries(d), skipAuth: true }); if(i) { saveSession(r.accessToken, r.user); showApp(); } } catch(e) { toast(e.message, true); } }
+function toast(m, e=false) { alert(m); }
+function logout() { localStorage.clear(); location.reload(); }
 
 init();
