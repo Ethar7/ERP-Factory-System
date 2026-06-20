@@ -331,7 +331,6 @@ function init() {
   $("#refresh-button").addEventListener("click", () => renderCurrent(true));
   state.token ? showApp() : showAuth();
 }
-
 // تعديل: دالة بناء القائمة للتأكد من الصلاحيات
 function renderNav() {
   const role = state.user?.role || "";
@@ -351,7 +350,11 @@ function renderNav() {
     });
   });
 }
-
+async function renderDashboard(force = false) {
+  const content = $("#content");
+  content.innerHTML = loadingMarkup();
+  content.innerHTML = `<section class="panel"><h3>مرحباً بك في لوحة تحكم المصنع</h3><p>النظام يعمل الآن على السيرفر.</p></section>`;
+}
 function showApp() {
   $("#auth-view").classList.add("hidden");
   $("#app-view").classList.remove("hidden");
