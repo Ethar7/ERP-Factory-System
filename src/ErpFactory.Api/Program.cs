@@ -301,6 +301,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
-app.UseDeveloperExceptionPage();
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/error"); // غيّري هذا مؤقتاً ليكون app.UseDeveloperExceptionPage();
+}
 
 app.Run();
