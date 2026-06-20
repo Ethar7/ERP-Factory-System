@@ -642,30 +642,44 @@ async function submitCreate(event, key) {
 }
 
 async function request(url, options = {}) {
-  const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
-  const headers = { "Content-Type": "application/json" };
-  
-  // إرسال التوكن مع كل طلب
-  if (!options.skipAuth && state.token) headers.Authorization = `Bearer ${state.token}`;
+    const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+    
+    // التعديل هنا: نقرأ التوكن مباشرة من localStorage في لحظة الطلب
+    const currentToken = localStorage.getItem("erp.token");
+    
+    const headers = { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    };
 
-  try {
-    const response = await fetch(fullUrl, {
-      method: options.method || "GET",
-      headers,
-      body: options.body ? JSON.stringify(options.body) : undefined
-    });
-
-    const text = await response.text();
-    const data = text ? JSON.parse(text) : null;
-
-    if (!response.ok) {
-        if(response.status === 401) logout();
-        throw new Error(data?.message || `خطأ ${response.status}`);
+    if (!options.skipAuth && currentToken) {
+        headers["Authorization"] = `Bearer ${currentToken}`;
     }
-    return data;
-  } catch (error) {
-    throw error;
-  }
+
+    console.log("إرسال طلب إلى:", fullUrl);
+    console.log("هل التوكن مرفق؟", !!currentToken);
+
+    try {
+        const response = await fetch(fullUrl, {
+            method: options.method || "GET",
+            headers: headers,
+            body: options.body ? JSON.stringify(options.body) : undefined
+        });
+
+        if (response.status === 401) {
+            console.error("خطأ 401: السيرفر يرفض التوكن أو أنه غير موجود");
+        }
+
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : null;
+
+        if (!response.ok) {
+            throw new Error(data?.message || `خطأ ${response.status}`);
+        }
+        return data;
+    } catch (error) {
+        throw error;
+    }
 }
 
 function showApp() { $("#auth-view").classList.add("hidden"); $("#app-view").classList.remove("hidden"); renderNav(); renderCurrent(); }
