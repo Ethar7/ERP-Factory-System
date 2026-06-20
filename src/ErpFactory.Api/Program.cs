@@ -285,6 +285,90 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// Custom Middleware Exception Handler for JSON Responses (especially useful for API calls on external servers)
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            success = false,
+            message = ex.Message
+        });
+    }
+});
+
+// =========================
+// DATABASE AUTOMATIC MIGRATION & VIEWS
+// =========================
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ErpFactoryDbContext>();
+    try
+    {
+        // Run EF database migrations automatically on startup
+        dbContext.Database.Migrate();
+
+        // Create database views if they do not exist
+        await dbContext.Database.ExecuteSqlRawAsync(@"
+            IF NOT EXISTS (SELECT * FROM sys.views WHERE name = 'ProjectCostSummary')
+            BEGIN
+                EXEC('CREATE VIEW ProjectCostSummary AS
+                SELECT
+                    p.ProjectID,
+                    p.ProjectName,
+                    p.TotalEstimatedBudget,
+                    ISNULL(pc.ProductionDirectCost, 0) AS ProductionDirectCost,
+                    ISNULL(sc.SiteDirectCost, 0) AS SiteDirectCost,
+                    ISNULL(pc.ProductionDirectCost, 0) + ISNULL(sc.SiteDirectCost, 0) AS TotalDirectCost
+                FROM Projects p
+                LEFT JOIN (
+                    SELECT
+                        ProjectID,
+                        SUM(LaborCost + MoldDepreciationCost) AS ProductionDirectCost
+                    FROM ProductionOrders
+                    GROUP BY ProjectID
+                ) pc ON pc.ProjectID = p.ProjectID
+                LEFT JOIN (
+                    SELECT
+                        ProjectID,
+                        SUM(SupervisorLaborCost + DailyExpenses) AS SiteDirectCost
+                    FROM SiteOperations
+                    GROUP BY ProjectID
+                ) sc ON sc.ProjectID = p.ProjectID')
+            END
+        ");
+
+        await dbContext.Database.ExecuteSqlRawAsync(@"
+            IF NOT EXISTS (SELECT * FROM sys.views WHERE name = 'JournalEntryBalance')
+            BEGIN
+                EXEC('CREATE VIEW JournalEntryBalance AS
+                SELECT
+                    je.JournalEntryID,
+                    je.ReferenceType,
+                    je.ReferenceID,
+                    SUM(jel.Debit) AS TotalDebit,
+                    SUM(jel.Credit) AS TotalCredit,
+                    SUM(jel.Debit) - SUM(jel.Credit) AS BalanceDifference
+                FROM JournalEntries je
+                LEFT JOIN JournalEntryLines jel ON jel.JournalEntryID = je.JournalEntryID
+                GROUP BY je.JournalEntryID, je.ReferenceType, je.ReferenceID')
+            END
+        ");
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "حدث خطأ أثناء تهيئة قاعدة البيانات وإنشاء الـ Views تلقائياً.");
+    }
+}
+
 // =========================
 // PIPELINE
 // =========================
@@ -301,13 +385,19 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
 else
 {
-    app.UseExceptionHandler("/error"); // غيّري هذا مؤقتاً ليكون app.UseDeveloperExceptionPage();
+    app.UseExceptionHandler(c => c.Run(async ctx =>
+    {
+        ctx.Response.StatusCode = 500;
+        ctx.Response.ContentType = "application/json";
+        await ctx.Response.WriteAsJsonAsync(new { success = false, message = "حدث خطأ داخلي في الخادم." });
+    }));
 }
 
 app.Run();
