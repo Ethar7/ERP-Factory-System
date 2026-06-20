@@ -437,7 +437,136 @@
 // init();
 
 
-const API_BASE_URL = ""; 
+// const API_BASE_URL = ""; 
+
+// const state = {
+//   token: localStorage.getItem("erp.token"),
+//   user: JSON.parse(localStorage.getItem("erp.user") || "null"),
+//   active: "dashboard",
+//   cache: {}
+// };
+
+// const modules = {
+//   dashboard: { title: "الرئيسية" },
+//   customers: { title: "العملاء", endpoint: "/api/Customers", columns: [["customerName", "العميل"], ["contactPerson", "مسؤول التواصل"], ["phone", "الهاتف"], ["email", "البريد"], ["address", "العنوان"]], form: [["customerName", "اسم العميل", "text", true], ["contactPerson", "مسؤول التواصل"], ["phone", "الهاتف"], ["email", "البريد", "email"], ["address", "العنوان", "text", false, "wide"]] },
+//   projects: { title: "المشاريع", endpoint: "/api/Projects", columns: [["projectName", "المشروع"], ["customer.customerName", "العميل"], ["projectStatus", "الحالة", "status"], ["totalEstimatedBudget", "الميزانية", "money"], ["startDate", "تاريخ البدء", "date"]], form: [["projectName", "اسم المشروع", "text", true, "wide"], ["customerId", "رقم العميل", "number", true], ["totalEstimatedBudget", "الميزانية", "number", true], ["startDate", "تاريخ البدء", "date"]] },
+//   inventory: { title: "المخزون", endpoint: "/api/Inventory/items", columns: [["itemName", "الصنف"], ["itemType", "النوع"], ["unit", "الوحدة"], ["currentStock", "الرصيد", "number"], ["averageCost", "متوسط التكلفة", "money"]], form: [["itemName", "اسم الصنف", "text", true], ["itemType", "النوع", "text", true], ["unit", "الوحدة", "text", true], ["currentStock", "الرصيد الحالي", "number", true], ["averageCost", "متوسط التكلفة", "number", true]] },
+//   production: { title: "أوامر الإنتاج", endpoint: "/api/ProductionOrders", columns: [["batchNumber", "رقم الدفعة"], ["projectId", "المشروع"], ["targetQuantity", "المستهدف", "number"], ["producedQuantity", "المنتج", "number"], ["productionStatus", "الحالة", "status"], ["orderDate", "التاريخ", "date"]], form: [["projectId", "رقم المشروع", "number", true], ["projectItemId", "بند المشروع", "number", true], ["mixDesignId", "الخلطة", "number", true], ["moldId", "القالب", "number", true], ["batchNumber", "رقم الدفعة"], ["targetQuantity", "الكمية المستهدفة", "number", true], ["laborCost", "تكلفة العمالة", "number"], ["moldDepreciationCost", "إهلاك القالب", "number"]] },
+//   delivery: { title: "أوامر التسليم", endpoint: "/api/DeliveryOrders", columns: [["deliveryOrderId", "رقم الأمر"], ["projectId", "المشروع"], ["driverName", "السائق"], ["vehicleNumber", "السيارة"], ["deliveryStatus", "الحالة", "status"], ["deliveryDate", "التاريخ", "date"]], form: [["projectId", "رقم المشروع", "number", true], ["driverName", "اسم السائق"], ["vehicleNumber", "رقم السيارة"], ["loadingTicketNumber", "تذكرة التحميل"], ["deliveryTicketNumber", "تذكرة التسليم"]] },
+//   site: { title: "عمليات الموقع", endpoint: "/api/SiteOperations", columns: [["siteOperationId", "رقم العملية"], ["projectId", "المشروع"], ["projectItemId", "البند"], ["installedQuantity", "الكمية المركبة", "number"], ["supervisorLaborCost", "إشراف", "money"], ["dailyExpenses", "مصروفات", "money"]], form: [["projectId", "رقم المشروع", "number", true], ["projectItemId", "بند المشروع", "number", true], ["installedQuantity", "الكمية المركبة", "number", true], ["supervisorLaborCost", "تكلفة الإشراف", "number"], ["dailyExpenses", "مصروفات يومية", "number"]] },
+//   accounting: { title: "الحسابات", endpoint: "/api/Accounting/chart-of-accounts", columns: [["accountCode", "كود الحساب"], ["accountName", "اسم الحساب"], ["accountType", "النوع"]], form: [["accountCode", "كود الحساب", "text", true], ["accountName", "اسم الحساب", "text", true], ["accountType", "نوع الحساب", "text", true]] },
+//   reports: { title: "التقارير", endpoint: "/api/Reports/project-cost-summary", columns: [["projectName", "المشروع"], ["totalEstimatedBudget", "الميزانية", "money"], ["productionDirectCost", "تكلفة الإنتاج", "money"], ["siteDirectCost", "تكلفة الموقع", "money"], ["totalDirectCost", "إجمالي التكلفة", "money"]] },
+//   adminUsers: { title: "إدارة المستخدمين", endpoint: "/api/admin/users" }
+// };
+
+// const navLabels = [["dashboard", "الرئيسية"], ["customers", "العملاء"], ["projects", "المشاريع"], ["inventory", "المخزون"], ["production", "الإنتاج"], ["delivery", "التسليم"], ["site", "الموقع"], ["accounting", "الحسابات"], ["reports", "التقارير"], ["adminUsers", "إدارة المستخدمين"]];
+// const $ = (selector) => document.querySelector(selector);
+
+// function init() {
+//   bindAuthTabs();
+//   $("#login-form").addEventListener("submit", onLogin);
+//   $("#register-form").addEventListener("submit", onRegister);
+//   $("#logout-button").addEventListener("click", logout);
+//   $("#refresh-button").addEventListener("click", () => renderCurrent(true));
+//   state.token ? showApp() : showAuth();
+// }
+
+// function renderNav() {
+//   const role = state.user?.role || "";
+//   const navList = $("#nav-list");
+//   navList.innerHTML = navLabels.map(([key, label]) => {
+//     if (key === "adminUsers" && role !== "Admin") return "";
+//     return `<button class="nav-item" type="button" data-module="${key}">${label}</button>`;
+//   }).join("");
+//   navList.querySelectorAll("[data-module]").forEach((btn) => btn.addEventListener("click", () => { state.active = btn.dataset.module; renderCurrent(); }));
+// }
+
+// async function renderDashboard(force = false) {
+//   const content = $("#content");
+//   content.innerHTML = loadingMarkup();
+//   // يمكنك هنا إعادة إضافة منطق عرض الإحصائيات إذا أردت
+//   content.innerHTML = `<section class="panel"><h3>لوحة التحكم</h3><p>مرحباً بك في النظام.</p></section>`;
+// }
+
+// async function renderModule(key, force = false) {
+//   const config = modules[key];
+//   const content = $("#content");
+//   content.innerHTML = loadingMarkup();
+//   const result = await safeLoad(key, config.endpoint, force);
+//   if (key === "adminUsers") {
+//     content.innerHTML = `<section class="panel"><h3>إدارة المستخدمين</h3><table><thead><tr><th>المستخدم</th><th>الصلاحية</th></tr></thead><tbody>${result.rows.map(u => `<tr><td>${u.username}</td><td><select onchange="changeUserRole(${u.userId}, this.value)"><option value="Admin" ${u.role === 'Admin' ? 'selected' : ''}>Admin</option><option value="ProjectManager" ${u.role === 'ProjectManager' ? 'selected' : ''}>ProjectManager</option><option value="InventoryUser" ${u.role === 'InventoryUser' ? 'selected' : ''}>InventoryUser</option><option value="Accountant" ${u.role === 'Accountant' ? 'selected' : ''}>Accountant</option></select></td></tr>`).join("")}</tbody></table></section>`;
+//   } else {
+//     content.innerHTML = `${config.form ? formPanel(key, config.form) : ""}${result.error ? errorPanel(result.error) : ""}${tablePanel(config.title, result.rows, config.columns)}`;
+//     const f = $(`#${key}-form`); if(f) f.addEventListener("submit", (e) => submitCreate(e, key));
+//   }
+// }
+
+// // الدوال المساعدة الأساسية التي كانت مفقودة
+// async function safeLoad(key, url, force = false) {
+//   if (!force && state.cache[key]) return state.cache[key];
+//   try { const rows = await request(url); const result = { rows: Array.isArray(rows) ? rows : [], error: null }; state.cache[key] = result; return result; }
+//   catch (error) { const result = { rows: [], error: error.message }; state.cache[key] = result; return result; }
+// }
+
+// async function submitCreate(event, key) {
+//   event.preventDefault();
+//   const config = modules[key];
+//   const body = Object.fromEntries(new FormData(event.currentTarget).entries());
+//   try { await request(config.endpoint, { method: "POST", body }); event.currentTarget.reset(); delete state.cache[key]; toast("تم الحفظ"); renderModule(key, true); }
+//   catch (error) { toast(error.message, true); }
+// }
+
+// async function request(url, options = {}) {
+//   const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+//   const headers = { "Content-Type": "application/json" };
+//   if (!options.skipAuth && state.token) headers.Authorization = `Bearer ${state.token}`;
+
+//   console.log("جاري الاتصال بـ:", fullUrl); // سأعرف الرابط الذي يتصل به
+
+//   try {
+//     const response = await fetch(fullUrl, {
+//       method: options.method || "GET",
+//       headers,
+//       body: options.body ? JSON.stringify(options.body) : undefined
+//     });
+
+//     // هنا تكمن الحقيقة: قراءة نص الخطأ من السيرفر
+//     const text = await response.text();
+//     console.log("رد السيرفر:", text); 
+
+//     if (!response.ok) {
+//       throw new Error(`خطأ ${response.status}: ${text}`);
+//     }
+
+//     return text ? JSON.parse(text) : null;
+//   } catch (error) {
+//     console.error("تفاصيل الخطأ:", error); // هذا سيظهر الخطأ الحقيقي
+//     throw error;
+//   }
+// }
+// function showApp() { $("#auth-view").classList.add("hidden"); $("#app-view").classList.remove("hidden"); renderNav(); renderCurrent(); }
+// function showAuth() { $("#auth-view").classList.remove("hidden"); $("#app-view").classList.add("hidden"); }
+// function renderCurrent(force = false) { state.active === "dashboard" ? renderDashboard(force) : renderModule(state.active, force); }
+// function formPanel(k, f) { return `<form id="${k}-form">${f.map(([n, l]) => `<label>${l}<input name="${n}"></label>`).join("")}<button type="submit">إضافة</button></form>`; }
+// function tablePanel(t, r, c) { return `<table><thead><tr>${c.map(x => `<th>${x[1]}</th>`).join("")}</tr></thead><tbody>${r.map(row => `<tr>${c.map(x => `<td>${row[x[0]] || ''}</td>`).join("")}</tr>`).join("")}</tbody></table>`; }
+// function loadingMarkup() { return "جاري التحميل..."; }
+// function errorPanel(m) { return `<p>${m}</p>`; }
+// function bindAuthTabs() { document.querySelectorAll("[data-auth-tab]").forEach(b => b.addEventListener("click", () => { document.querySelectorAll("[data-auth-tab]").forEach(x => x.classList.remove("active")); b.classList.add("active"); const isLogin = b.dataset.authTab === "login"; $("#login-form").classList.toggle("hidden", !isLogin); $("#register-form").classList.toggle("hidden", isLogin); })); }
+// function saveSession(t, u) { state.token = t; state.user = u; localStorage.setItem("erp.token", t); localStorage.setItem("erp.user", JSON.stringify(u)); }
+// async function onLogin(e) { e.preventDefault(); await authSubmit("/api/Auth/login", new FormData(e.currentTarget), true); }
+// async function onRegister(event) {
+//   event.preventDefault();
+//   // هذا الرابط يجب أن يطابق المسار الموجود في الـ Backend للـ Register
+//   await authSubmit("/api/Auth/register", new FormData(event.currentTarget), false);
+// }
+// async function authSubmit(u, d, i) { try { const r = await request(u, { method: "POST", body: Object.fromEntries(d), skipAuth: true }); if(i) { saveSession(r.accessToken, r.user); showApp(); } } catch(e) { toast(e.message, true); } }
+// function toast(m, e=false) { alert(m); }
+// function logout() { localStorage.clear(); location.reload(); }
+
+// init();
+
+// رابط الموقع الخاص بك على السيرفر
+const API_BASE_URL = "https://etharosama-001-site1.ftempurl.com"; 
 
 const state = {
   token: localStorage.getItem("erp.token"),
@@ -452,7 +581,7 @@ const modules = {
   projects: { title: "المشاريع", endpoint: "/api/Projects", columns: [["projectName", "المشروع"], ["customer.customerName", "العميل"], ["projectStatus", "الحالة", "status"], ["totalEstimatedBudget", "الميزانية", "money"], ["startDate", "تاريخ البدء", "date"]], form: [["projectName", "اسم المشروع", "text", true, "wide"], ["customerId", "رقم العميل", "number", true], ["totalEstimatedBudget", "الميزانية", "number", true], ["startDate", "تاريخ البدء", "date"]] },
   inventory: { title: "المخزون", endpoint: "/api/Inventory/items", columns: [["itemName", "الصنف"], ["itemType", "النوع"], ["unit", "الوحدة"], ["currentStock", "الرصيد", "number"], ["averageCost", "متوسط التكلفة", "money"]], form: [["itemName", "اسم الصنف", "text", true], ["itemType", "النوع", "text", true], ["unit", "الوحدة", "text", true], ["currentStock", "الرصيد الحالي", "number", true], ["averageCost", "متوسط التكلفة", "number", true]] },
   production: { title: "أوامر الإنتاج", endpoint: "/api/ProductionOrders", columns: [["batchNumber", "رقم الدفعة"], ["projectId", "المشروع"], ["targetQuantity", "المستهدف", "number"], ["producedQuantity", "المنتج", "number"], ["productionStatus", "الحالة", "status"], ["orderDate", "التاريخ", "date"]], form: [["projectId", "رقم المشروع", "number", true], ["projectItemId", "بند المشروع", "number", true], ["mixDesignId", "الخلطة", "number", true], ["moldId", "القالب", "number", true], ["batchNumber", "رقم الدفعة"], ["targetQuantity", "الكمية المستهدفة", "number", true], ["laborCost", "تكلفة العمالة", "number"], ["moldDepreciationCost", "إهلاك القالب", "number"]] },
-  delivery: { title: "أوامر التسليم", endpoint: "/api/DeliveryOrders", columns: [["deliveryOrderId", "رقم الأمر"], ["projectId", "المشروع"], ["driverName", "السائق"], ["vehicleNumber", "السيارة"], ["deliveryStatus", "الحالة", "status"], ["deliveryDate", "التاريخ", "date"]], form: [["projectId", "رقم المشروع", "number", true], ["driverName", "اسم السائق"], ["vehicleNumber", "رقم السيارة"], ["loadingTicketNumber", "تذكرة التحميل"], ["deliveryTicketNumber", "تذكرة التسليم"]] },
+  delivery: { title: "أوامر التسليم", endpoint: "/api/DeliveryOrders", columns: [["deliveryOrderId", "رقم الأمر"], ["projectId", "المشروع"], ["driverName", "السائق"], ["vehicleNumber", "السيارة"], ["deliveryStatus", "الحالة", "status"], ["deliveryDate", "التاريخ", "date"]], form: [["projectId", "رقم المشروع", "number", true], ["driverName", "اسم السائق"], ["vehicleNumber", "السيارة"], ["loadingTicketNumber", "تذكرة التحميل"], ["deliveryTicketNumber", "تذكرة التسليم"]] },
   site: { title: "عمليات الموقع", endpoint: "/api/SiteOperations", columns: [["siteOperationId", "رقم العملية"], ["projectId", "المشروع"], ["projectItemId", "البند"], ["installedQuantity", "الكمية المركبة", "number"], ["supervisorLaborCost", "إشراف", "money"], ["dailyExpenses", "مصروفات", "money"]], form: [["projectId", "رقم المشروع", "number", true], ["projectItemId", "بند المشروع", "number", true], ["installedQuantity", "الكمية المركبة", "number", true], ["supervisorLaborCost", "تكلفة الإشراف", "number"], ["dailyExpenses", "مصروفات يومية", "number"]] },
   accounting: { title: "الحسابات", endpoint: "/api/Accounting/chart-of-accounts", columns: [["accountCode", "كود الحساب"], ["accountName", "اسم الحساب"], ["accountType", "النوع"]], form: [["accountCode", "كود الحساب", "text", true], ["accountName", "اسم الحساب", "text", true], ["accountType", "نوع الحساب", "text", true]] },
   reports: { title: "التقارير", endpoint: "/api/Reports/project-cost-summary", columns: [["projectName", "المشروع"], ["totalEstimatedBudget", "الميزانية", "money"], ["productionDirectCost", "تكلفة الإنتاج", "money"], ["siteDirectCost", "تكلفة الموقع", "money"], ["totalDirectCost", "إجمالي التكلفة", "money"]] },
@@ -482,10 +611,7 @@ function renderNav() {
 }
 
 async function renderDashboard(force = false) {
-  const content = $("#content");
-  content.innerHTML = loadingMarkup();
-  // يمكنك هنا إعادة إضافة منطق عرض الإحصائيات إذا أردت
-  content.innerHTML = `<section class="panel"><h3>لوحة التحكم</h3><p>مرحباً بك في النظام.</p></section>`;
+  $("#content").innerHTML = `<section class="panel"><h3>لوحة التحكم</h3><p>مرحباً بك في النظام.</p></section>`;
 }
 
 async function renderModule(key, force = false) {
@@ -501,7 +627,6 @@ async function renderModule(key, force = false) {
   }
 }
 
-// الدوال المساعدة الأساسية التي كانت مفقودة
 async function safeLoad(key, url, force = false) {
   if (!force && state.cache[key]) return state.cache[key];
   try { const rows = await request(url); const result = { rows: Array.isArray(rows) ? rows : [], error: null }; state.cache[key] = result; return result; }
@@ -519,9 +644,9 @@ async function submitCreate(event, key) {
 async function request(url, options = {}) {
   const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
   const headers = { "Content-Type": "application/json" };
+  
+  // إرسال التوكن مع كل طلب
   if (!options.skipAuth && state.token) headers.Authorization = `Bearer ${state.token}`;
-
-  console.log("جاري الاتصال بـ:", fullUrl); // سأعرف الرابط الذي يتصل به
 
   try {
     const response = await fetch(fullUrl, {
@@ -530,36 +655,31 @@ async function request(url, options = {}) {
       body: options.body ? JSON.stringify(options.body) : undefined
     });
 
-    // هنا تكمن الحقيقة: قراءة نص الخطأ من السيرفر
     const text = await response.text();
-    console.log("رد السيرفر:", text); 
+    const data = text ? JSON.parse(text) : null;
 
     if (!response.ok) {
-      throw new Error(`خطأ ${response.status}: ${text}`);
+        if(response.status === 401) logout();
+        throw new Error(data?.message || `خطأ ${response.status}`);
     }
-
-    return text ? JSON.parse(text) : null;
+    return data;
   } catch (error) {
-    console.error("تفاصيل الخطأ:", error); // هذا سيظهر الخطأ الحقيقي
     throw error;
   }
 }
+
 function showApp() { $("#auth-view").classList.add("hidden"); $("#app-view").classList.remove("hidden"); renderNav(); renderCurrent(); }
 function showAuth() { $("#auth-view").classList.remove("hidden"); $("#app-view").classList.add("hidden"); }
 function renderCurrent(force = false) { state.active === "dashboard" ? renderDashboard(force) : renderModule(state.active, force); }
 function formPanel(k, f) { return `<form id="${k}-form">${f.map(([n, l]) => `<label>${l}<input name="${n}"></label>`).join("")}<button type="submit">إضافة</button></form>`; }
 function tablePanel(t, r, c) { return `<table><thead><tr>${c.map(x => `<th>${x[1]}</th>`).join("")}</tr></thead><tbody>${r.map(row => `<tr>${c.map(x => `<td>${row[x[0]] || ''}</td>`).join("")}</tr>`).join("")}</tbody></table>`; }
 function loadingMarkup() { return "جاري التحميل..."; }
-function errorPanel(m) { return `<p>${m}</p>`; }
+function errorPanel(m) { return `<p style="color:red">${m}</p>`; }
 function bindAuthTabs() { document.querySelectorAll("[data-auth-tab]").forEach(b => b.addEventListener("click", () => { document.querySelectorAll("[data-auth-tab]").forEach(x => x.classList.remove("active")); b.classList.add("active"); const isLogin = b.dataset.authTab === "login"; $("#login-form").classList.toggle("hidden", !isLogin); $("#register-form").classList.toggle("hidden", isLogin); })); }
 function saveSession(t, u) { state.token = t; state.user = u; localStorage.setItem("erp.token", t); localStorage.setItem("erp.user", JSON.stringify(u)); }
 async function onLogin(e) { e.preventDefault(); await authSubmit("/api/Auth/login", new FormData(e.currentTarget), true); }
-async function onRegister(event) {
-  event.preventDefault();
-  // هذا الرابط يجب أن يطابق المسار الموجود في الـ Backend للـ Register
-  await authSubmit("/api/Auth/register", new FormData(event.currentTarget), false);
-}
-async function authSubmit(u, d, i) { try { const r = await request(u, { method: "POST", body: Object.fromEntries(d), skipAuth: true }); if(i) { saveSession(r.accessToken, r.user); showApp(); } } catch(e) { toast(e.message, true); } }
+async function onRegister(event) { event.preventDefault(); await authSubmit("/api/Auth/register", new FormData(event.currentTarget), false); }
+async function authSubmit(u, d, i) { try { const r = await request(u, { method: "POST", body: Object.fromEntries(d), skipAuth: true }); if(i) { saveSession(r.accessToken, r.user); showApp(); } else { toast("تم التسجيل بنجاح"); } } catch(e) { toast(e.message, true); } }
 function toast(m, e=false) { alert(m); }
 function logout() { localStorage.clear(); location.reload(); }
 
