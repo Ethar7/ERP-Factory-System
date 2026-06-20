@@ -643,8 +643,6 @@ async function submitCreate(event, key) {
 
 async function request(url, options = {}) {
     const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
-    
-    // التعديل هنا: نقرأ التوكن مباشرة من localStorage في لحظة الطلب
     const currentToken = localStorage.getItem("erp.token");
     
     const headers = { 
@@ -656,9 +654,6 @@ async function request(url, options = {}) {
         headers["Authorization"] = `Bearer ${currentToken}`;
     }
 
-    console.log("إرسال طلب إلى:", fullUrl);
-    console.log("هل التوكن مرفق؟", !!currentToken);
-
     try {
         const response = await fetch(fullUrl, {
             method: options.method || "GET",
@@ -666,18 +661,29 @@ async function request(url, options = {}) {
             body: options.body ? JSON.stringify(options.body) : undefined
         });
 
+        // 1. إذا كان الرد 401، نخرج فوراً ونطلب تسجيل الدخول
         if (response.status === 401) {
-            console.error("خطأ 401: السيرفر يرفض التوكن أو أنه غير موجود");
+            logout();
+            throw new Error("جلسة العمل انتهت، يرجى تسجيل الدخول.");
         }
 
+        // 2. قراءة النص فقط إذا كان هناك محتوى
         const text = await response.text();
-        const data = text ? JSON.parse(text) : null;
+        
+        // 3. إذا كان الرد فارغاً أو غير موجود، نرجع null بدلاً من محاولة عمل JSON.parse
+        if (!text || text === "" || text === "undefined") {
+            return null; 
+        }
+
+        const data = JSON.parse(text);
 
         if (!response.ok) {
             throw new Error(data?.message || `خطأ ${response.status}`);
         }
         return data;
+
     } catch (error) {
+        console.error("خطأ في الطلب:", error);
         throw error;
     }
 }
