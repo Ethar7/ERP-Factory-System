@@ -517,16 +517,33 @@ async function submitCreate(event, key) {
 }
 
 async function request(url, options = {}) {
+  const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
   const headers = { "Content-Type": "application/json" };
   if (!options.skipAuth && state.token) headers.Authorization = `Bearer ${state.token}`;
-  const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
-  const response = await fetch(fullUrl, { method: options.method || "GET", headers, body: options.body ? JSON.stringify(options.body) : undefined });
-  const text = await response.text();
-  let json; try { json = JSON.parse(text); } catch(e) { if(!response.ok) throw new Error("خطأ اتصال"); }
-  if (!response.ok) throw new Error(json?.message || "حدث خطأ");
-  return json?.data ?? json;
-}
 
+  console.log("جاري الاتصال بـ:", fullUrl); // سأعرف الرابط الذي يتصل به
+
+  try {
+    const response = await fetch(fullUrl, {
+      method: options.method || "GET",
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined
+    });
+
+    // هنا تكمن الحقيقة: قراءة نص الخطأ من السيرفر
+    const text = await response.text();
+    console.log("رد السيرفر:", text); 
+
+    if (!response.ok) {
+      throw new Error(`خطأ ${response.status}: ${text}`);
+    }
+
+    return text ? JSON.parse(text) : null;
+  } catch (error) {
+    console.error("تفاصيل الخطأ:", error); // هذا سيظهر الخطأ الحقيقي
+    throw error;
+  }
+}
 function showApp() { $("#auth-view").classList.add("hidden"); $("#app-view").classList.remove("hidden"); renderNav(); renderCurrent(); }
 function showAuth() { $("#auth-view").classList.remove("hidden"); $("#app-view").classList.add("hidden"); }
 function renderCurrent(force = false) { state.active === "dashboard" ? renderDashboard(force) : renderModule(state.active, force); }
