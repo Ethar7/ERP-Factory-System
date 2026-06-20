@@ -554,6 +554,11 @@ function errorPanel(m) { return `<p>${m}</p>`; }
 function bindAuthTabs() { document.querySelectorAll("[data-auth-tab]").forEach(b => b.addEventListener("click", () => { document.querySelectorAll("[data-auth-tab]").forEach(x => x.classList.remove("active")); b.classList.add("active"); const isLogin = b.dataset.authTab === "login"; $("#login-form").classList.toggle("hidden", !isLogin); $("#register-form").classList.toggle("hidden", isLogin); })); }
 function saveSession(t, u) { state.token = t; state.user = u; localStorage.setItem("erp.token", t); localStorage.setItem("erp.user", JSON.stringify(u)); }
 async function onLogin(e) { e.preventDefault(); await authSubmit("/api/Auth/login", new FormData(e.currentTarget), true); }
+async function onRegister(event) {
+  event.preventDefault();
+  // هذا الرابط يجب أن يطابق المسار الموجود في الـ Backend للـ Register
+  await authSubmit("/api/Auth/register", new FormData(event.currentTarget), false);
+}
 async function authSubmit(u, d, i) { try { const r = await request(u, { method: "POST", body: Object.fromEntries(d), skipAuth: true }); if(i) { saveSession(r.accessToken, r.user); showApp(); } } catch(e) { toast(e.message, true); } }
 function toast(m, e=false) { alert(m); }
 function logout() { localStorage.clear(); location.reload(); }
